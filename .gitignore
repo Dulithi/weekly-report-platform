@@ -1,0 +1,43 @@
+# =========================
+# Environment / Secrets
+# =========================
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# =========================
+# macOS
+# =========================
+.DS_Store
+
+# =========================
+# IDEs
+# =========================
+.idea/
+*.iml
+.vscode/
+
+# =========================
+# Java / Maven
+# =========================
+backend/target/
+*.log
+
+# =========================
+# Node / Next.js
+# =========================
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/coverage/
+
+# =========================
+# Testing
+# =========================
+coverage/
+
+# =========================
+# Local runtime files
+# =========================
+tmp/
