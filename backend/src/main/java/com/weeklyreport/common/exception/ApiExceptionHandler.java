@@ -1,0 +1,105 @@
+package com.weeklyreport.common.exception;
+
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import com.weeklyreport.auth.exception.EmailAlreadyExistsException;
+import com.weeklyreport.auth.exception.InvalidRefreshTokenException;
+
+@RestControllerAdvice
+public class ApiExceptionHandler {
+
+    @ExceptionHandler(EmailAlreadyExistsException.class)
+    public ProblemDetail handleEmailAlreadyExists(
+            EmailAlreadyExistsException exception
+    ) {
+
+        ProblemDetail problem =
+                ProblemDetail.forStatusAndDetail(
+                        HttpStatus.CONFLICT,
+                        exception.getMessage()
+                );
+
+        problem.setTitle("Email already registered");
+
+        return problem;
+    }
+
+    @ExceptionHandler({
+            BadCredentialsException.class,
+            DisabledException.class
+    })
+    public ProblemDetail handleAuthenticationFailure(
+            RuntimeException exception
+    ) {
+
+        ProblemDetail problem =
+                ProblemDetail.forStatusAndDetail(
+                        HttpStatus.UNAUTHORIZED,
+                        "Invalid email or password"
+                );
+
+        problem.setTitle(
+                "Authentication failed"
+        );
+
+        return problem;
+    }
+
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ProblemDetail handleInvalidRefreshToken(
+            InvalidRefreshTokenException exception
+    ) {
+
+        ProblemDetail problem =
+                ProblemDetail.forStatusAndDetail(
+                        HttpStatus.UNAUTHORIZED,
+                        "Invalid or expired refresh token"
+                );
+
+        problem.setTitle(
+                "Authentication failed"
+        );
+
+        return problem;
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ProblemDetail handleValidation(
+            MethodArgumentNotValidException exception
+    ) {
+
+        Map<String, String> errors =
+                exception
+                        .getBindingResult()
+                        .getFieldErrors()
+                        .stream()
+                        .collect(
+                                Collectors.toMap(
+                                        error -> error.getField(),
+                                        error -> error.getDefaultMessage(),
+                                        (first, second) -> first
+                                )
+                        );
+
+        ProblemDetail problem =
+                ProblemDetail.forStatusAndDetail(
+                        HttpStatus.BAD_REQUEST,
+                        "Request validation failed"
+                );
+
+        problem.setTitle("Validation failed");
+
+        problem.setProperty("errors", errors);
+
+        return problem;
+    }
+}
