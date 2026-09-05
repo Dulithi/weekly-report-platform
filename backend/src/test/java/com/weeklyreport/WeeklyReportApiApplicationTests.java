@@ -2,13 +2,11 @@ package com.weeklyreport;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 
-import com.weeklyreport.support.PostgresTestContainerConfiguration;
+import com.weeklyreport.support.PostgresIntegrationTest;
 
 @SpringBootTest
-@Import(PostgresTestContainerConfiguration.class)
-class WeeklyReportApiApplicationTests {
+class WeeklyReportApiApplicationTests extends PostgresIntegrationTest {
 
     @Test
     void contextLoads() {
