@@ -22,8 +22,8 @@ public class ApiExceptionHandler {
             EmailAlreadyExistsException exception
     ) {
 
-        ProblemDetail problem =
-                ProblemDetail.forStatusAndDetail(
+        ProblemDetail problem
+                = ProblemDetail.forStatusAndDetail(
                         HttpStatus.CONFLICT,
                         exception.getMessage()
                 );
@@ -34,15 +34,15 @@ public class ApiExceptionHandler {
     }
 
     @ExceptionHandler({
-            BadCredentialsException.class,
-            DisabledException.class
+        BadCredentialsException.class,
+        DisabledException.class
     })
     public ProblemDetail handleAuthenticationFailure(
             RuntimeException exception
     ) {
 
-        ProblemDetail problem =
-                ProblemDetail.forStatusAndDetail(
+        ProblemDetail problem
+                = ProblemDetail.forStatusAndDetail(
                         HttpStatus.UNAUTHORIZED,
                         "Invalid email or password"
                 );
@@ -59,8 +59,8 @@ public class ApiExceptionHandler {
             InvalidRefreshTokenException exception
     ) {
 
-        ProblemDetail problem =
-                ProblemDetail.forStatusAndDetail(
+        ProblemDetail problem
+                = ProblemDetail.forStatusAndDetail(
                         HttpStatus.UNAUTHORIZED,
                         "Invalid or expired refresh token"
                 );
@@ -77,8 +77,8 @@ public class ApiExceptionHandler {
             MethodArgumentNotValidException exception
     ) {
 
-        Map<String, String> errors =
-                exception
+        Map<String, String> errors
+                = exception
                         .getBindingResult()
                         .getFieldErrors()
                         .stream()
@@ -90,8 +90,8 @@ public class ApiExceptionHandler {
                                 )
                         );
 
-        ProblemDetail problem =
-                ProblemDetail.forStatusAndDetail(
+        ProblemDetail problem
+                = ProblemDetail.forStatusAndDetail(
                         HttpStatus.BAD_REQUEST,
                         "Request validation failed"
                 );
@@ -99,6 +99,38 @@ public class ApiExceptionHandler {
         problem.setTitle("Validation failed");
 
         problem.setProperty("errors", errors);
+
+        return problem;
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ProblemDetail handleNotFound(
+            ResourceNotFoundException exception
+    ) {
+
+        ProblemDetail problem
+                = ProblemDetail.forStatusAndDetail(
+                        HttpStatus.NOT_FOUND,
+                        exception.getMessage()
+                );
+
+        problem.setTitle("Resource not found");
+
+        return problem;
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ProblemDetail handleConflict(
+            ConflictException exception
+    ) {
+
+        ProblemDetail problem
+                = ProblemDetail.forStatusAndDetail(
+                        HttpStatus.CONFLICT,
+                        exception.getMessage()
+                );
+
+        problem.setTitle("Conflict");
 
         return problem;
     }

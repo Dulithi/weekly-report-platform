@@ -1,0 +1,11 @@
+package com.weeklyreport.user.dto;
+
+import com.weeklyreport.user.UserRole;
+
+import jakarta.validation.constraints.NotNull;
+
+public record UpdateRoleRequest(
+        @NotNull
+        UserRole role
+) {
+}

@@ -1,0 +1,229 @@
+package com.weeklyreport.project.service;
+
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.weeklyreport.activity.ActivityType;
+import com.weeklyreport.activity.service.ActivityLogService;
+import com.weeklyreport.common.exception.ConflictException;
+import com.weeklyreport.common.exception.ResourceNotFoundException;
+import com.weeklyreport.project.ProjectStatus;
+import com.weeklyreport.project.dto.CreateProjectRequest;
+import com.weeklyreport.project.dto.ProjectResponse;
+import com.weeklyreport.project.dto.UpdateProjectRequest;
+import com.weeklyreport.project.entity.Project;
+import com.weeklyreport.project.repository.ProjectRepository;
+import com.weeklyreport.user.entity.User;
+import com.weeklyreport.user.repository.UserRepository;
+
+@Service
+public class ProjectService {
+
+    private final ProjectRepository projectRepository;
+    private final UserRepository userRepository;
+    private final ActivityLogService activityLogService;
+
+    public ProjectService(ProjectRepository projectRepository, UserRepository userRepository,
+            ActivityLogService activityLogService) {
+        this.projectRepository = projectRepository;
+        this.userRepository = userRepository;
+        this.activityLogService = activityLogService;
+    }
+
+    @Transactional(readOnly = true)
+    public ProjectResponse getProject(UUID projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project Not Found"));
+
+        return toResponse(project);
+    }
+
+    @Transactional
+    public ProjectResponse createProject(CreateProjectRequest request, UUID actorUserId) {
+
+        String name = request.name().trim();
+
+        if (projectRepository.existsByNameIgnoreCaseAndStatus(
+                name,
+                ProjectStatus.ACTIVE
+        )) {
+            throw new ConflictException(
+                    "An active project with this name already exists"
+            );
+        }
+
+        User creator = userRepository.findById(actorUserId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                "User not found"
+        )
+                );
+
+        Project project = new Project(
+                name,
+                normalizeOptional(request.description()),
+                creator
+        );
+
+        Project saved = projectRepository.save(project);
+
+        activityLogService.record(
+                actorUserId,
+                ActivityType.PROJECT_CREATED,
+                saved.getId(),
+                Map.of("projectName", saved.getName())
+        );
+
+        return toResponse(saved);
+    }
+
+    @Transactional
+    public ProjectResponse updateProject(
+            UUID projectId,
+            UpdateProjectRequest request,
+            UUID actorUserId
+    ) {
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project Not Found"));
+
+        if (project.getStatus() == ProjectStatus.ARCHIVED) {
+            throw new ConflictException("Archived projects cannot be edited");
+        }
+
+        String name = request.name().trim();
+
+        if (projectRepository.existsByNameIgnoreCaseAndStatusAndIdNot(
+                name,
+                ProjectStatus.ACTIVE,
+                projectId
+        )) {
+            throw new ConflictException(
+                    "An active project with this name already exists"
+            );
+        }
+
+        project.update(name, normalizeOptional(request.description()));
+
+        activityLogService.record(
+                actorUserId,
+                ActivityType.PROJECT_UPDATED,
+                project.getId(),
+                Map.of("projectName", project.getName())
+        );
+
+        return toResponse(project);
+    }
+
+    @Transactional
+    public void archiveProject(
+            UUID projectId,
+            UUID actorUserId
+    ) {
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project Not Found"));
+
+        if (project.getStatus() == ProjectStatus.ARCHIVED) {
+            return;
+        }
+
+        project.archive();
+
+        activityLogService.record(
+                actorUserId,
+                ActivityType.PROJECT_ARCHIVED,
+                project.getId(),
+                Map.of(
+                        "projectName",
+                        project.getName()
+                )
+        );
+    }
+
+    @Transactional
+    public ProjectResponse activateProject(
+            UUID projectId,
+            UUID actorUserId
+    ) {
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project Not Found"));
+
+        if (projectRepository.existsByNameIgnoreCaseAndStatusAndIdNot(
+                project.getName(),
+                ProjectStatus.ACTIVE,
+                projectId
+        )) {
+            throw new ConflictException(
+                    "Another active project with this name already exists"
+            );
+        }
+
+        project.activate();
+
+        activityLogService.record(
+                actorUserId,
+                ActivityType.PROJECT_ACTIVATED,
+                project.getId(),
+                Map.of(
+                        "projectName",
+                        project.getName()
+                )
+        );
+
+        return toResponse(project);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProjectResponse> listProjects(
+            ProjectStatus status,
+            Pageable pageable
+    ) {
+
+        Page<Project> result
+                = status == null
+                        ? projectRepository.findAll(pageable)
+                        : projectRepository.findByStatus(
+                                status,
+                                pageable
+                        );
+
+        return result.map(this::toResponse);
+    }
+
+    private String normalizeOptional(
+            String value
+    ) {
+
+        if (value == null) {
+            return null;
+        }
+
+        String trimmed
+                = value.trim();
+
+        return trimmed.isEmpty()
+                ? null
+                : trimmed;
+    }
+
+    private ProjectResponse toResponse(Project project) {
+
+        return new ProjectResponse(
+                project.getId(),
+                project.getName(),
+                project.getDescription(),
+                project.getStatus(),
+                project.getCreatedBy().getId(),
+                project.getCreatedAt(),
+                project.getUpdatedAt()
+        );
+
+    }
+
+}

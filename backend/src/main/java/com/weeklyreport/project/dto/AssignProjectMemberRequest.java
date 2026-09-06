@@ -1,0 +1,12 @@
+package com.weeklyreport.project.dto;
+
+import java.util.UUID;
+
+import jakarta.validation.constraints.NotNull;
+
+public record AssignProjectMemberRequest(
+
+        @NotNull
+        UUID userId
+) {
+}

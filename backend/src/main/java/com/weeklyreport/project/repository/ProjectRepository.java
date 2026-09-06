@@ -17,6 +17,12 @@ public interface ProjectRepository
             ProjectStatus status
     );
 
+    boolean existsByNameIgnoreCaseAndStatusAndIdNot(
+            String name,
+            ProjectStatus status,
+            UUID id
+     );
+
     Page<Project> findByStatus(
             ProjectStatus status,
             Pageable pageable
