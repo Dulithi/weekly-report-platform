@@ -1,0 +1,2 @@
+ALTER TABLE report_version
+ADD COLUMN entity_version BIGINT NOT NULL DEFAULT 0;

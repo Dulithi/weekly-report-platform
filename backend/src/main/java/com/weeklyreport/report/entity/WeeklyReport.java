@@ -2,6 +2,7 @@ package com.weeklyreport.report.entity;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Objects;
 
 import com.weeklyreport.common.entity.BaseEntity;
 import com.weeklyreport.report.ReportStatus;
@@ -100,5 +101,34 @@ public class WeeklyReport extends BaseEntity {
 
     public long getEntityVersion() {
         return entityVersion;
+    }
+
+    public void setCurrentVersion(ReportVersion currentVersion) {
+        this.currentVersion =Objects.requireNonNull(currentVersion);
+    }
+
+    public void submit(Instant submittedAt) {
+
+        if (status != ReportStatus.DRAFT
+                        && status != ReportStatus.NEEDS_CORRECTION
+        ) {
+            throw new IllegalStateException(
+                    "Only editable reports can be submitted"
+            );
+        }
+
+        if (currentVersion == null) {
+            throw new IllegalStateException(
+                    "Report has no current version"
+            );
+        }
+
+        this.status = ReportStatus.SUBMITTED;
+        this.submittedAt = submittedAt;
+    }
+
+    public boolean isEditable() {
+        return status == ReportStatus.DRAFT
+                || status == ReportStatus.NEEDS_CORRECTION;
     }
 }

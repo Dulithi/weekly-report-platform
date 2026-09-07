@@ -29,4 +29,8 @@ public interface BlockerRepository
     long countByReportVersionIdAndResolvedFalse(
             UUID reportVersionId
     );
+
+    void deleteByReportVersionId(
+            UUID reportVersionId
+    );
 }

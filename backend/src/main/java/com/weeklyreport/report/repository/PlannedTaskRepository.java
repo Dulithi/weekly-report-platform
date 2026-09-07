@@ -9,14 +9,14 @@ import com.weeklyreport.report.content.PlannedTask;
 
 public interface PlannedTaskRepository extends JpaRepository<PlannedTask, UUID> {
 
-    List<PlannedTask>
-            findByReportVersionIdOrderBySortOrderAsc(
-                    UUID reportVersionId
-            );
+    List<PlannedTask> findByReportVersionIdOrderBySortOrderAsc(
+            UUID reportVersionId
+    );
 
-    List<PlannedTask>
-            findByReportVersionIdAndProjectIdOrderBySortOrderAsc(
-                    UUID reportVersionId,
-                    UUID projectId
-            );
+    List<PlannedTask> findByReportVersionIdAndProjectIdOrderBySortOrderAsc(
+            UUID reportVersionId,
+            UUID projectId
+    );
+
+    void deleteByReportVersionId(UUID reportVersionId);
 }

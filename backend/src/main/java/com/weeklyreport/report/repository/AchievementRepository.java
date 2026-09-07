@@ -20,4 +20,8 @@ public interface AchievementRepository
             findByReportVersionIdAndKeyAchievementTrue(
                     UUID reportVersionId
             );
+
+    void deleteByReportVersionId(
+            UUID reportVersionId
+    );
 }

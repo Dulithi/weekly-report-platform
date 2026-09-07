@@ -14,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.Version;
 
 @Entity
 @Table(
@@ -51,6 +52,10 @@ public class ReportVersion {
     @Column(name = "submitted_at")
     private Instant submittedAt;
 
+    @Version 
+    @Column(name = "entity_version", nullable = false)
+    private long entityVersion; 
+
     protected ReportVersion() {
     }
 
@@ -86,5 +91,39 @@ public class ReportVersion {
 
     public Instant getSubmittedAt() {
         return submittedAt;
+    }
+
+    public long getEntityVersion() {
+        return entityVersion;
+    }
+
+    public boolean isSubmitted() {
+        return submittedAt != null;
+    }
+
+    public void updateNotes(
+            String notes
+    ) {
+
+        if (isSubmitted()) {
+            throw new IllegalStateException(
+                    "Submitted report versions cannot be modified"
+            );
+        }
+
+        this.notes = notes;
+    }
+
+    public void markSubmitted(
+            Instant submittedAt
+    ) {
+
+        if (this.submittedAt != null) {
+            throw new IllegalStateException(
+                    "Report version has already been submitted"
+            );
+        }
+
+        this.submittedAt = submittedAt;
     }
 }

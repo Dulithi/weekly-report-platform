@@ -134,4 +134,20 @@ public class ApiExceptionHandler {
 
         return problem;
     }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ProblemDetail handleBadRequest(
+            BadRequestException exception
+    ) {
+
+        ProblemDetail problem
+                = ProblemDetail.forStatusAndDetail(
+                        HttpStatus.BAD_REQUEST,
+                        exception.getMessage()
+                );
+
+        problem.setTitle("Invalid request");
+
+        return problem;
+    }
 }

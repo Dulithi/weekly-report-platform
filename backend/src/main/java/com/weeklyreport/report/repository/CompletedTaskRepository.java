@@ -20,4 +20,8 @@ public interface CompletedTaskRepository extends JpaRepository<CompletedTask, UU
                     UUID projectId
             );
 
+    void deleteByReportVersionId(
+            UUID reportVersionId
+    );
+
 }

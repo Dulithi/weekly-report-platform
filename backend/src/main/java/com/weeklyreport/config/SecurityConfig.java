@@ -67,6 +67,9 @@ public class SecurityConfig {
                                 "MANAGER",
                                 "ADMIN"
                         )
+                        .requestMatchers(
+                                "/api/v1/reports/**"
+                        ).hasRole("TEAM_MEMBER")
 
                         .anyRequest()
                         .authenticated()

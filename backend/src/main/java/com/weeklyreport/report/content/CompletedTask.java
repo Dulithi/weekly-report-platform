@@ -70,6 +70,34 @@ public class CompletedTask {
     protected CompletedTask() {
     }
 
+    public CompletedTask(
+            ReportVersion reportVersion,
+            Project project,
+            String taskName,
+            String description,
+            TaskPriority priority,
+            int plannedPercentage,
+            int actualPercentage,
+            TaskStatus status,
+            Integer plannedMinutes,
+            Integer spentMinutes,
+            String deliverable,
+            int sortOrder
+    ) {
+        this.reportVersion = reportVersion;
+        this.project = project;
+        this.taskName = taskName;
+        this.description = description;
+        this.priority = priority;
+        this.plannedPercentage = plannedPercentage;
+        this.actualPercentage = actualPercentage;
+        this.status = status;
+        this.plannedMinutes = plannedMinutes;
+        this.spentMinutes = spentMinutes;
+        this.deliverable = deliverable;
+        this.sortOrder = sortOrder;
+    }
+
     public UUID getId() {
         return id;
     }

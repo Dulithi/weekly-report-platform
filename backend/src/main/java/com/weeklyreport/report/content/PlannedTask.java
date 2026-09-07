@@ -53,6 +53,24 @@ public class PlannedTask {
     protected PlannedTask() {
     }
 
+    public PlannedTask(
+            ReportVersion reportVersion,
+            Project project,
+            String taskName,
+            String description,
+            TaskPriority priority,
+            Integer estimatedMinutes,
+            int sortOrder
+    ) {
+        this.reportVersion = reportVersion;
+        this.project = project;
+        this.taskName = taskName;
+        this.description = description;
+        this.priority = priority;
+        this.estimatedMinutes = estimatedMinutes;
+        this.sortOrder = sortOrder;
+    }
+
     public UUID getId() {
         return id;
     }

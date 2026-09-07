@@ -22,4 +22,8 @@ public interface TimeEntryRepository
                     UUID reportVersionId,
                     TaskType taskType
             );
+
+    void deleteByReportVersionId(
+            UUID reportVersionId
+    );
 }
