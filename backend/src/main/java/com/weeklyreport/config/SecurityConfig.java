@@ -13,13 +13,17 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.weeklyreport.security.SecurityProperties;
+import com.weeklyreport.security.CurrentAccountAuthoritiesConverter;
 
 @Configuration
 @EnableMethodSecurity
@@ -29,11 +33,19 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            JwtAuthenticationConverter jwtAuthenticationConverter
+            JwtAuthenticationConverter jwtAuthenticationConverter,
+            CookieCsrfTokenRepository csrfTokenRepository
     ) throws Exception {
 
         return http
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(csrfTokenRepository)
+                        // Auth endpoints accept/set cookies; other APIs require explicit bearer tokens.
+                        .requireCsrfProtectionMatcher(new AndRequestMatcher(
+                                CsrfFilter.DEFAULT_CSRF_MATCHER,
+                                PathPatternRequestMatcher.withDefaults().matcher("/api/v1/auth/**")
+                        ))
+                )
 
                 .cors(Customizer.withDefaults())
 
@@ -48,6 +60,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/actuator/health"
                         ).permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/v1/auth/csrf").permitAll()
 
                         .requestMatchers(
                                 HttpMethod.POST,
@@ -87,13 +101,23 @@ public class SecurityConfig {
     }
 
     @Bean
-    JwtAuthenticationConverter jwtAuthenticationConverter() {
+    CookieCsrfTokenRepository csrfTokenRepository(SecurityProperties properties) {
+        CookieCsrfTokenRepository repository = new CookieCsrfTokenRepository();
+        boolean secure = properties.refreshToken().secure();
+        // The production prefix prevents sibling domains from injecting this cookie.
+        repository.setCookieName(secure ? "__Host-XSRF-TOKEN" : "XSRF-TOKEN");
+        repository.setCookiePath("/");
+        repository.setCookieCustomizer(cookie -> cookie
+                .httpOnly(true)
+                .secure(secure)
+                .sameSite(properties.refreshToken().sameSite()));
+        return repository;
+    }
 
-        JwtGrantedAuthoritiesConverter authorities =
-                new JwtGrantedAuthoritiesConverter();
-
-        authorities.setAuthoritiesClaimName("roles");
-        authorities.setAuthorityPrefix("ROLE_");
+    @Bean
+    JwtAuthenticationConverter jwtAuthenticationConverter(
+            CurrentAccountAuthoritiesConverter authorities
+    ) {
 
         JwtAuthenticationConverter converter =
                 new JwtAuthenticationConverter();
@@ -137,11 +161,13 @@ public class SecurityConfig {
         configuration.setAllowedHeaders(
                 List.of(
                         "Authorization",
-                        "Content-Type"
+                        "Content-Type",
+                        "X-XSRF-TOKEN"
                 )
         );
 
         configuration.setAllowCredentials(true);
+        configuration.setExposedHeaders(List.of("Retry-After"));
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();

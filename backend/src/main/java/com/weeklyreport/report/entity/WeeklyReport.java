@@ -35,15 +35,25 @@ import jakarta.persistence.Version;
 public class WeeklyReport extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(
+            name = "user_id",
+            nullable = false
+    )
     private User user;
 
-    @Column(name = "week_start", nullable = false)
+    @Column(
+            name = "week_start",
+            nullable = false
+    )
     private LocalDate weekStart;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
-    private ReportStatus status = ReportStatus.DRAFT;
+    @Column(
+            nullable = false,
+            length = 30
+    )
+    private ReportStatus status =
+            ReportStatus.DRAFT;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "current_version_id")
@@ -56,7 +66,10 @@ public class WeeklyReport extends BaseEntity {
     private Instant approvedAt;
 
     @Version
-    @Column(name = "entity_version", nullable = false)
+    @Column(
+            name = "entity_version",
+            nullable = false
+    )
     private long entityVersion;
 
     protected WeeklyReport() {
@@ -66,9 +79,14 @@ public class WeeklyReport extends BaseEntity {
             User user,
             LocalDate weekStart
     ) {
-        this.user = user;
-        this.weekStart = weekStart;
-        this.status = ReportStatus.DRAFT;
+        this.user =
+                Objects.requireNonNull(user);
+
+        this.weekStart =
+                Objects.requireNonNull(weekStart);
+
+        this.status =
+                ReportStatus.DRAFT;
     }
 
     public User getUser() {
@@ -103,14 +121,23 @@ public class WeeklyReport extends BaseEntity {
         return entityVersion;
     }
 
-    public void setCurrentVersion(ReportVersion currentVersion) {
-        this.currentVersion =Objects.requireNonNull(currentVersion);
+    public void setCurrentVersion(
+            ReportVersion currentVersion
+    ) {
+        this.currentVersion =
+                Objects.requireNonNull(
+                        currentVersion
+                );
     }
 
-    public void submit(Instant submittedAt) {
+    public void submit(
+            Instant submittedAt
+    ) {
 
-        if (status != ReportStatus.DRAFT
-                        && status != ReportStatus.NEEDS_CORRECTION
+        if (
+                status != ReportStatus.DRAFT
+                        && status
+                        != ReportStatus.NEEDS_CORRECTION
         ) {
             throw new IllegalStateException(
                     "Only editable reports can be submitted"
@@ -123,12 +150,56 @@ public class WeeklyReport extends BaseEntity {
             );
         }
 
-        this.status = ReportStatus.SUBMITTED;
-        this.submittedAt = submittedAt;
+        this.status =
+                ReportStatus.SUBMITTED;
+
+        this.submittedAt =
+                Objects.requireNonNull(
+                        submittedAt
+                );
+    }
+
+    public void requestChanges() {
+
+        if (
+                status
+                        != ReportStatus.SUBMITTED
+        ) {
+            throw new IllegalStateException(
+                    "Only submitted reports can be sent back for correction"
+            );
+        }
+
+        this.status =
+                ReportStatus.NEEDS_CORRECTION;
+    }
+
+    public void approve(
+            Instant approvedAt
+    ) {
+
+        if (
+                status
+                        != ReportStatus.SUBMITTED
+        ) {
+            throw new IllegalStateException(
+                    "Only submitted reports can be approved"
+            );
+        }
+
+        this.status =
+                ReportStatus.APPROVED;
+
+        this.approvedAt =
+                Objects.requireNonNull(
+                        approvedAt
+                );
     }
 
     public boolean isEditable() {
+
         return status == ReportStatus.DRAFT
-                || status == ReportStatus.NEEDS_CORRECTION;
+                || status
+                == ReportStatus.NEEDS_CORRECTION;
     }
 }

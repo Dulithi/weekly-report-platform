@@ -1,5 +1,7 @@
 package com.weeklyreport.auth;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,7 +53,7 @@ class RefreshTokenIntegrationTest extends PostgresIntegrationTest {
                 );
 
         mockMvc.perform(
-                        post("/api/v1/auth/refresh")
+                        post("/api/v1/auth/refresh").with(csrf())
                                 .cookie(refreshCookie)
                 )
                 .andExpect(
@@ -86,7 +88,7 @@ class RefreshTokenIntegrationTest extends PostgresIntegrationTest {
 
         MvcResult refreshResult =
                 mockMvc.perform(
-                                post("/api/v1/auth/refresh")
+                                post("/api/v1/auth/refresh").with(csrf())
                                         .cookie(firstCookie)
                         )
                         .andExpect(
@@ -146,7 +148,7 @@ class RefreshTokenIntegrationTest extends PostgresIntegrationTest {
                 );
 
         mockMvc.perform(
-                        post("/api/v1/auth/refresh")
+                        post("/api/v1/auth/refresh").with(csrf())
                                 .cookie(firstCookie)
                 )
                 .andExpect(
@@ -154,7 +156,7 @@ class RefreshTokenIntegrationTest extends PostgresIntegrationTest {
                 );
 
         mockMvc.perform(
-                        post("/api/v1/auth/refresh")
+                        post("/api/v1/auth/refresh").with(csrf())
                                 .cookie(firstCookie)
                 )
                 .andExpect(
@@ -167,7 +169,7 @@ class RefreshTokenIntegrationTest extends PostgresIntegrationTest {
             throws Exception {
 
         mockMvc.perform(
-                        post("/api/v1/auth/refresh")
+                        post("/api/v1/auth/refresh").with(csrf())
                 )
                 .andExpect(
                         status().isUnauthorized()
@@ -179,7 +181,7 @@ class RefreshTokenIntegrationTest extends PostgresIntegrationTest {
             throws Exception {
 
         mockMvc.perform(
-                        post("/api/v1/auth/refresh")
+                        post("/api/v1/auth/refresh").with(csrf())
                                 .cookie(
                                     new Cookie(
                                         "refresh-token", 
@@ -205,7 +207,7 @@ class RefreshTokenIntegrationTest extends PostgresIntegrationTest {
                 );
 
         mockMvc.perform(
-                        post("/api/v1/auth/register")
+                        post("/api/v1/auth/register").with(csrf())
                                 .contentType(
                                         MediaType.APPLICATION_JSON
                                 )
@@ -228,7 +230,7 @@ class RefreshTokenIntegrationTest extends PostgresIntegrationTest {
 
         MvcResult loginResult =
                 mockMvc.perform(
-                                post("/api/v1/auth/login")
+                                post("/api/v1/auth/login").with(csrf())
                                         .contentType(
                                                 MediaType.APPLICATION_JSON
                                         )

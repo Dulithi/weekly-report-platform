@@ -8,8 +8,21 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record SecurityProperties(
         Jwt jwt,
         RefreshToken refreshToken,
-        Cors cors
+        Cors cors,
+        LoginRateLimit loginRateLimit
 ) {
+
+    public record LoginRateLimit(int maxAttempts, Duration window) {
+        public LoginRateLimit {
+            if (maxAttempts < 1 || maxAttempts > 10000) {
+                throw new IllegalArgumentException("Login max attempts must be between 1 and 10000");
+            }
+            if (window == null || window.compareTo(Duration.ofSeconds(1)) < 0
+                    || window.compareTo(Duration.ofDays(1)) > 0 || window.getNano() != 0) {
+                throw new IllegalArgumentException("Login window must be whole seconds between 1 second and 1 day");
+            }
+        }
+    }
 
     public record Jwt(
             String issuer,

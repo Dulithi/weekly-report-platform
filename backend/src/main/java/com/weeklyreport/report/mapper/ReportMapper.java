@@ -49,9 +49,6 @@ public class ReportMapper {
             List<TimeEntry> timeEntries
     ) {
 
-        ReportVersion version =
-                report.getCurrentVersion();
-
         return new WeeklyReportResponse(
                 report.getId(),
                 report.getUser().getId(),
@@ -62,29 +59,53 @@ public class ReportMapper {
                 report.getApprovedAt(),
                 report.getEntityVersion(),
 
-                new ReportVersionResponse(
-                        version.getId(),
-                        version.getVersionNumber(),
-                        version.getNotes(),
-                        version.getCreatedAt(),
-                        version.getSubmittedAt(),
-                        version.getEntityVersion(),
-                        completedTasks.stream()
-                                .map(this::toResponse)
-                                .toList(),
-                        plannedTasks.stream()
-                                .map(this::toResponse)
-                                .toList(),
-                        blockers.stream()
-                                .map(this::toResponse)
-                                .toList(),
-                        achievements.stream()
-                                .map(this::toResponse)
-                                .toList(),
-                        timeEntries.stream()
-                                .map(this::toResponse)
-                                .toList()
+                toVersionResponse(
+                        report.getCurrentVersion(),
+                        completedTasks,
+                        plannedTasks,
+                        blockers,
+                        achievements,
+                        timeEntries
                 )
+        );
+    }
+
+    public ReportVersionResponse toVersionResponse(
+            ReportVersion version,
+            List<CompletedTask> completedTasks,
+            List<PlannedTask> plannedTasks,
+            List<Blocker> blockers,
+            List<Achievement> achievements,
+            List<TimeEntry> timeEntries
+    ) {
+
+        return new ReportVersionResponse(
+                version.getId(),
+                version.getVersionNumber(),
+                version.getNotes(),
+                version.getCreatedAt(),
+                version.getSubmittedAt(),
+                version.getEntityVersion(),
+
+                completedTasks.stream()
+                        .map(this::toResponse)
+                        .toList(),
+
+                plannedTasks.stream()
+                        .map(this::toResponse)
+                        .toList(),
+
+                blockers.stream()
+                        .map(this::toResponse)
+                        .toList(),
+
+                achievements.stream()
+                        .map(this::toResponse)
+                        .toList(),
+
+                timeEntries.stream()
+                        .map(this::toResponse)
+                        .toList()
         );
     }
 
@@ -97,12 +118,15 @@ public class ReportMapper {
 
         return new CompletedTaskResponse(
                 task.getId(),
+
                 project == null
                         ? null
                         : project.getId(),
+
                 project == null
                         ? null
                         : project.getName(),
+
                 task.getTaskName(),
                 task.getDescription(),
                 task.getPriority(),
@@ -125,12 +149,15 @@ public class ReportMapper {
 
         return new PlannedTaskResponse(
                 task.getId(),
+
                 project == null
                         ? null
                         : project.getId(),
+
                 project == null
                         ? null
                         : project.getName(),
+
                 task.getTaskName(),
                 task.getDescription(),
                 task.getPriority(),

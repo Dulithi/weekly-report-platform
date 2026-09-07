@@ -1,5 +1,7 @@
 package com.weeklyreport.project;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -163,7 +165,7 @@ class ProjectReadIntegrationTest extends PostgresIntegrationTest {
                 );
 
         MvcResult result = mockMvc.perform(
-                post("/api/v1/auth/login")
+                post("/api/v1/auth/login").with(csrf())
                         .contentType(
                                 MediaType.APPLICATION_JSON
                         )

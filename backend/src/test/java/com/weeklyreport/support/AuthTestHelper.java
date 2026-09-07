@@ -1,5 +1,7 @@
 package com.weeklyreport.support;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
@@ -61,7 +63,7 @@ public class AuthTestHelper {
 
         MvcResult result =
                 mockMvc.perform(
-                        post("/api/v1/auth/login")
+                        post("/api/v1/auth/login").with(csrf())
                                 .contentType(
                                         MediaType.APPLICATION_JSON
                                 )

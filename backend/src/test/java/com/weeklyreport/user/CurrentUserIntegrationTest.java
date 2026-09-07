@@ -1,5 +1,7 @@
 package com.weeklyreport.user;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -191,7 +193,7 @@ class CurrentUserIntegrationTest
 
         MvcResult result =
                 mockMvc.perform(
-                                post("/api/v1/auth/login")
+                                post("/api/v1/auth/login").with(csrf())
                                         .contentType(
                                                 MediaType.APPLICATION_JSON
                                         )

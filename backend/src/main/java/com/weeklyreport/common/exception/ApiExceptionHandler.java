@@ -5,6 +5,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -13,9 +15,20 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.weeklyreport.auth.exception.EmailAlreadyExistsException;
 import com.weeklyreport.auth.exception.InvalidRefreshTokenException;
+import com.weeklyreport.auth.exception.LoginRateLimitExceededException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+
+    @ExceptionHandler(LoginRateLimitExceededException.class)
+    public ResponseEntity<ProblemDetail> handleLoginRateLimit(LoginRateLimitExceededException exception) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.TOO_MANY_REQUESTS, exception.getMessage());
+        problem.setTitle("Too many login attempts");
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(HttpHeaders.RETRY_AFTER, Long.toString(exception.getRetryAfterSeconds()))
+                .body(problem);
+    }
 
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ProblemDetail handleEmailAlreadyExists(

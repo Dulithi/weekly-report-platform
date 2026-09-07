@@ -1,15 +1,19 @@
 package com.weeklyreport.auth.controller;
 
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.weeklyreport.auth.dto.AccessTokenResponse;
+import com.weeklyreport.auth.dto.CsrfTokenResponse;
 import com.weeklyreport.auth.dto.LoginRequest;
 import com.weeklyreport.auth.dto.LoginResult;
 import com.weeklyreport.auth.dto.RegisterRequest;
@@ -33,6 +37,14 @@ public class AuthController {
     ) {
         this.authService = authService;
         this.cookieService = cookieService;
+    }
+
+    @GetMapping("/csrf")
+    public ResponseEntity<CsrfTokenResponse> csrf(CsrfToken token) {
+        // Reading the deferred token writes its cookie; the body exposes the masked value.
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .body(new CsrfTokenResponse(token.getHeaderName(), token.getToken()));
     }
 
     @PostMapping("/register")

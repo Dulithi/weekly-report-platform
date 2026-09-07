@@ -1,5 +1,7 @@
 package com.weeklyreport.user;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -478,7 +480,7 @@ class ManagerAssignmentIntegrationTest
                 );
 
         MvcResult result = mockMvc.perform(
-                        post("/api/v1/auth/login")
+                        post("/api/v1/auth/login").with(csrf())
                                 .contentType(
                                         MediaType.APPLICATION_JSON
                                 )

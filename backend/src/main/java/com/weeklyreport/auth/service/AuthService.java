@@ -18,6 +18,7 @@ import com.weeklyreport.auth.dto.RegisteredUserResponse;
 import com.weeklyreport.auth.entity.RefreshToken;
 import com.weeklyreport.auth.exception.EmailAlreadyExistsException;
 import com.weeklyreport.auth.exception.InvalidRefreshTokenException;
+import com.weeklyreport.auth.exception.LoginRateLimitExceededException;
 import com.weeklyreport.security.AuthenticatedUser;
 import com.weeklyreport.user.UserRole;
 import com.weeklyreport.user.entity.User;
@@ -35,19 +36,22 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
 
     private final AuthenticationManager authenticationManager;
+    private final LoginRateLimitService loginRateLimitService;
 
     public AuthService(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             AccessTokenService accessTokenService,
             RefreshTokenService refreshTokenService,
-            AuthenticationManager authenticationManager
+            AuthenticationManager authenticationManager,
+            LoginRateLimitService loginRateLimitService
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.accessTokenService = accessTokenService;
         this.refreshTokenService = refreshTokenService;
         this.authenticationManager = authenticationManager;
+        this.loginRateLimitService = loginRateLimitService;
     }
 
     @Transactional
@@ -89,11 +93,17 @@ public class AuthService {
 
     public LoginResult login(LoginRequest request) {
 
+        String email = normalizeEmail(request.email());
+        var allowance = loginRateLimitService.reserveAttempt(email);
+        if (!allowance.allowed()) {
+            throw new LoginRateLimitExceededException(allowance.retryAfterSeconds());
+        }
+
         Authentication authentication
                 = authenticationManager.authenticate(
                         UsernamePasswordAuthenticationToken
                                 .unauthenticated(
-                                        normalizeEmail(request.email()),
+                                        email,
                                         request.password()
                                 )
                 );
@@ -116,7 +126,8 @@ public class AuthService {
         return new LoginResult(accessToken, refreshToken);
     }
 
-    @Transactional
+    // Reject invalid refreshes without undoing their security revocations.
+    @Transactional(noRollbackFor = InvalidRefreshTokenException.class)
     public LoginResult refresh(String rawRefreshToken) {
 
         RefreshToken oldToken

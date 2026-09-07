@@ -1,5 +1,7 @@
 package com.weeklyreport.auth;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+
 import static org.hamcrest.Matchers.containsString;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +54,7 @@ class LoginIntegrationTest
                 );
 
         mockMvc.perform(
-                        post("/api/v1/auth/login")
+                        post("/api/v1/auth/login").with(csrf())
                                 .contentType(
                                         MediaType.APPLICATION_JSON
                                 )
@@ -119,7 +121,7 @@ class LoginIntegrationTest
                 );
 
         mockMvc.perform(
-                        post("/api/v1/auth/login")
+                        post("/api/v1/auth/login").with(csrf())
                                 .contentType(
                                         MediaType.APPLICATION_JSON
                                 )
@@ -145,7 +147,7 @@ class LoginIntegrationTest
                 );
 
         mockMvc.perform(
-                        post("/api/v1/auth/login")
+                        post("/api/v1/auth/login").with(csrf())
                                 .contentType(
                                         MediaType.APPLICATION_JSON
                                 )
@@ -187,7 +189,7 @@ class LoginIntegrationTest
                 );
 
         mockMvc.perform(
-                        post("/api/v1/auth/login")
+                        post("/api/v1/auth/login").with(csrf())
                                 .contentType(
                                         MediaType.APPLICATION_JSON
                                 )
@@ -218,7 +220,7 @@ class LoginIntegrationTest
                 );
 
         mockMvc.perform(
-                        post("/api/v1/auth/login")
+                        post("/api/v1/auth/login").with(csrf())
                                 .contentType(
                                         MediaType.APPLICATION_JSON
                                 )
@@ -247,7 +249,7 @@ class LoginIntegrationTest
                 );
 
         mockMvc.perform(
-                        post("/api/v1/auth/register")
+                        post("/api/v1/auth/register").with(csrf())
                                 .contentType(
                                         MediaType.APPLICATION_JSON
                                 )

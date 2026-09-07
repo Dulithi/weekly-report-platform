@@ -1,5 +1,7 @@
 package com.weeklyreport.project;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -277,7 +279,7 @@ class ProjectAdminIntegrationTest extends PostgresIntegrationTest {
         LoginRequest request = new LoginRequest(email, password);
 
         MvcResult result = mockMvc.perform(
-                post("/api/v1/auth/login")
+                post("/api/v1/auth/login").with(csrf())
                         .contentType(
                                 MediaType.APPLICATION_JSON
                         )

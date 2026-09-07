@@ -1,5 +1,7 @@
 package com.weeklyreport.auth;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -61,7 +63,7 @@ class LogoutIntegrationTest
         ).isFalse();
 
         mockMvc.perform(
-                        post("/api/v1/auth/logout")
+                        post("/api/v1/auth/logout").with(csrf())
                                 .cookie(refreshCookie)
                 )
                 .andExpect(
@@ -96,7 +98,7 @@ class LogoutIntegrationTest
                 );
 
         mockMvc.perform(
-                        post("/api/v1/auth/logout")
+                        post("/api/v1/auth/logout").with(csrf())
                                 .cookie(refreshCookie)
                 )
                 .andExpect(
@@ -104,7 +106,7 @@ class LogoutIntegrationTest
                 );
 
         mockMvc.perform(
-                        post("/api/v1/auth/refresh")
+                        post("/api/v1/auth/refresh").with(csrf())
                                 .header(
                                         HttpHeaders.COOKIE,
                                         refreshCookie
@@ -120,7 +122,7 @@ class LogoutIntegrationTest
             throws Exception {
 
         mockMvc.perform(
-                        post("/api/v1/auth/logout")
+                        post("/api/v1/auth/logout").with(csrf())
                 )
                 .andExpect(
                         status().isNoContent()
@@ -138,7 +140,7 @@ class LogoutIntegrationTest
                 );
 
         mockMvc.perform(
-                        post("/api/v1/auth/logout")
+                        post("/api/v1/auth/logout").with(csrf())
                                 .cookie(cookie)
                 )
                 .andExpect(
@@ -159,7 +161,7 @@ class LogoutIntegrationTest
                 );
 
         mockMvc.perform(
-                        post("/api/v1/auth/register")
+                        post("/api/v1/auth/register").with(csrf())
                                 .contentType(
                                         MediaType.APPLICATION_JSON
                                 )
@@ -182,7 +184,7 @@ class LogoutIntegrationTest
 
         MvcResult loginResult =
                 mockMvc.perform(
-                                post("/api/v1/auth/login")
+                                post("/api/v1/auth/login").with(csrf())
                                         .contentType(
                                                 MediaType.APPLICATION_JSON
                                         )

@@ -25,29 +25,69 @@ import jakarta.persistence.Table;
 public class Review {
 
     @Id
-    @UuidGenerator(style = UuidGenerator.Style.VERSION_7)
+    @UuidGenerator(
+            style = UuidGenerator.Style.VERSION_7
+    )
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "report_version_id", nullable = false)
+    @ManyToOne(
+            fetch = FetchType.LAZY,
+            optional = false
+    )
+    @JoinColumn(
+            name = "report_version_id",
+            nullable = false
+    )
     private ReportVersion reportVersion;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "reviewer_id", nullable = false)
+    @ManyToOne(
+            fetch = FetchType.LAZY,
+            optional = false
+    )
+    @JoinColumn(
+            name = "reviewer_id",
+            nullable = false
+    )
     private User reviewer;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @Column(
+            nullable = false,
+            length = 30
+    )
     private ReviewAction action;
 
     @Column(columnDefinition = "TEXT")
     private String comment;
 
     @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(
+            name = "created_at",
+            nullable = false,
+            updatable = false
+    )
     private Instant createdAt;
 
     protected Review() {
+    }
+
+    public Review(
+            ReportVersion reportVersion,
+            User reviewer,
+            ReviewAction action,
+            String comment
+    ) {
+        this.reportVersion =
+                reportVersion;
+
+        this.reviewer =
+                reviewer;
+
+        this.action =
+                action;
+
+        this.comment =
+                comment;
     }
 
     public UUID getId() {
@@ -73,5 +113,4 @@ public class Review {
     public Instant getCreatedAt() {
         return createdAt;
     }
-
 }

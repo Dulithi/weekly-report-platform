@@ -12,8 +12,18 @@ public interface ReviewRepository
         extends JpaRepository<Review, UUID> {
 
     List<Review>
+            findByReportVersionReportIdOrderByCreatedAtAsc(
+                    UUID reportId
+            );
+
+    List<Review>
             findByReportVersionReportIdOrderByCreatedAtDesc(
                     UUID reportId
+            );
+
+    List<Review>
+            findByReportVersionIdOrderByCreatedAtAsc(
+                    UUID reportVersionId
             );
 
     List<Review>

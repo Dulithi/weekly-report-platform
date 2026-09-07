@@ -1,5 +1,7 @@
 package com.weeklyreport.auth;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +53,7 @@ class RegistrationIntegrationTest
                 );
 
         mockMvc.perform(
-                post("/api/v1/auth/register")
+                post("/api/v1/auth/register").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
         )
@@ -96,7 +98,7 @@ class RegistrationIntegrationTest
         register(request);
 
         mockMvc.perform(
-                post("/api/v1/auth/register")
+                post("/api/v1/auth/register").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(
                             objectMapper.writeValueAsString(request)
@@ -114,7 +116,7 @@ class RegistrationIntegrationTest
                         "User"
                 );
 
-        mockMvc.perform(post("/api/v1/auth/register")
+        mockMvc.perform(post("/api/v1/auth/register").with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
         ).andExpect(status().isBadRequest());
@@ -123,7 +125,7 @@ class RegistrationIntegrationTest
     private void register(RegisterRequest request) throws Exception {
 
         mockMvc.perform(
-                post("/api/v1/auth/register")
+                post("/api/v1/auth/register").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
         );

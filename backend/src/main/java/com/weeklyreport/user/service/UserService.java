@@ -26,12 +26,14 @@ public class UserService {
     private final UserRepository userRepository;
     private final ManagerTeamMemberRepository managerTeamMemberRepository;
     private final ActivityLogService activityLogService;
+    private final AdminContinuityGuard adminContinuityGuard;
 
     public UserService(UserRepository userRepository, ManagerTeamMemberRepository managerTeamMemberRepository,
-            ActivityLogService activityLogService) {
+            ActivityLogService activityLogService, AdminContinuityGuard adminContinuityGuard) {
         this.userRepository = userRepository;
         this.managerTeamMemberRepository = managerTeamMemberRepository;
         this.activityLogService = activityLogService;
+        this.adminContinuityGuard = adminContinuityGuard;
     }
 
     public CurrentUserResponse getCurrentUser(
@@ -75,6 +77,10 @@ public class UserService {
 
         UserRole oldRole = user.getRole();
         UserRole newRole = request.role();
+
+        if (oldRole == UserRole.ADMIN && newRole != UserRole.ADMIN) {
+            adminContinuityGuard.ensureAnotherActiveAdminExists(user);
+        }
 
         if (oldRole == UserRole.MANAGER && newRole != UserRole.MANAGER
                 && !managerTeamMemberRepository.findByManagerId(userId).isEmpty()) {
@@ -121,6 +127,8 @@ public class UserService {
         if (!user.isActive()) {
             return;
         }
+
+        adminContinuityGuard.ensureAnotherActiveAdminExists(user);
 
         if (user.getRole() == UserRole.MANAGER
                         && !managerTeamMemberRepository
