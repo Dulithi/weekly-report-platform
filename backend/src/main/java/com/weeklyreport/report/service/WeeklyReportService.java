@@ -1,5 +1,6 @@
 package com.weeklyreport.report.service;
 
+import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -72,11 +73,13 @@ public class WeeklyReportService {
     private final ActivityLogService activityLogService;
 
     private final ReportMapper reportMapper;
+    private final Clock clock;
 
-    public WeeklyReportService(AchievementRepository achievementRepository, ActivityLogService activityLogService, BlockerRepository blockerRepository, CompletedTaskRepository completedTaskRepository, PlannedTaskRepository plannedTaskRepository, ProjectRepository projectRepository, ReportMapper reportMapper, ReportVersionRepository reportVersionRepository, ReportStatusHistoryRepository statusHistoryRepository, TimeEntryRepository timeEntryRepository, UserRepository userRepository, WeeklyReportRepository weeklyReportRepository) {
+    public WeeklyReportService(AchievementRepository achievementRepository, ActivityLogService activityLogService, BlockerRepository blockerRepository, Clock clock, CompletedTaskRepository completedTaskRepository, PlannedTaskRepository plannedTaskRepository, ProjectRepository projectRepository, ReportMapper reportMapper, ReportVersionRepository reportVersionRepository, ReportStatusHistoryRepository statusHistoryRepository, TimeEntryRepository timeEntryRepository, UserRepository userRepository, WeeklyReportRepository weeklyReportRepository) {
         this.achievementRepository = achievementRepository;
         this.activityLogService = activityLogService;
         this.blockerRepository = blockerRepository;
+        this.clock = clock;
         this.completedTaskRepository = completedTaskRepository;
         this.plannedTaskRepository = plannedTaskRepository;
         this.projectRepository = projectRepository;
@@ -233,7 +236,7 @@ public class WeeklyReportService {
 
         validateForSubmission(version);
 
-        Instant now = Instant.now();
+        Instant now = clock.instant();
 
         ReportStatus previousStatus
                 = report.getStatus();

@@ -38,6 +38,9 @@ management:
       show-details: never
 
 app:
+  reporting:
+    time-zone: ${REPORTING_TIME_ZONE:Asia/Colombo}
+
   security:
     login-rate-limit:
       max-attempts: ${LOGIN_MAX_ATTEMPTS:10}

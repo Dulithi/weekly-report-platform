@@ -1,5 +1,6 @@
 package com.weeklyreport.user.repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,6 +24,8 @@ public interface  UserRepository extends JpaRepository<User, UUID>{
     Optional<User> findByEmailIgnoreCase(String email);
 
     boolean existsByEmailIgnoreCase(String email);
+
+    List<User> findAllByRoleAndActiveTrueOrderByLastNameAscFirstNameAscEmailAsc(UserRole role);
 
     @Query("SELECT u FROM User u WHERE (:role IS NULL OR u.role = :role) AND " +
            "(:active IS NULL OR u.active = :active)")
