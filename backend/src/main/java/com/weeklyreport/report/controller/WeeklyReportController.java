@@ -1,5 +1,6 @@
 package com.weeklyreport.report.controller;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -18,10 +19,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.weeklyreport.report.dto.CreateWeeklyReportRequest;
+import com.weeklyreport.report.dto.ReportVersionResponse;
+import com.weeklyreport.report.dto.ReportVersionSummaryResponse;
 import com.weeklyreport.report.dto.UpdateWeeklyReportRequest;
 import com.weeklyreport.report.dto.WeeklyReportResponse;
 import com.weeklyreport.report.dto.WeeklyReportSummaryResponse;
 import com.weeklyreport.report.service.WeeklyReportService;
+import com.weeklyreport.report.service.ReportVersionHistoryService;
+import com.weeklyreport.review.dto.ReviewHistoryResponse;
+import com.weeklyreport.review.service.ReviewService;
 
 import jakarta.validation.Valid;
 
@@ -30,12 +36,18 @@ import jakarta.validation.Valid;
 public class WeeklyReportController {
 
     private final WeeklyReportService reportService;
+    private final ReviewService reviewService;
+    private final ReportVersionHistoryService reportVersionHistoryService;
 
     public WeeklyReportController(
-            WeeklyReportService reportService
+            WeeklyReportService reportService,
+            ReviewService reviewService,
+            ReportVersionHistoryService reportVersionHistoryService
     ) {
         this.reportService =
                 reportService;
+        this.reviewService = reviewService;
+        this.reportVersionHistoryService = reportVersionHistoryService;
     }
 
     @PostMapping
@@ -105,6 +117,33 @@ public class WeeklyReportController {
                         reportId,
                         currentUserId(jwt)
                 );
+    }
+
+    @GetMapping("/{reportId}/reviews")
+    public List<ReviewHistoryResponse> reviews(
+            @PathVariable UUID reportId,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        return reviewService.getForOwner(reportId, currentUserId(jwt));
+    }
+
+    @GetMapping("/{reportId}/versions")
+    public List<ReportVersionSummaryResponse> versions(
+            @PathVariable UUID reportId,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        return reportVersionHistoryService.listForOwner(reportId, currentUserId(jwt));
+    }
+
+    @GetMapping("/{reportId}/versions/{versionNumber}")
+    public ReportVersionResponse version(
+            @PathVariable UUID reportId,
+            @PathVariable int versionNumber,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        return reportVersionHistoryService.getForOwner(
+                reportId, versionNumber, currentUserId(jwt)
+        );
     }
 
     @GetMapping("/me")

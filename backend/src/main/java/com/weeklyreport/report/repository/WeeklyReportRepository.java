@@ -11,9 +11,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.weeklyreport.report.ReportStatus;
 import com.weeklyreport.report.entity.WeeklyReport;
+
+import jakarta.persistence.LockModeType;
 
 public interface WeeklyReportRepository
         extends JpaRepository<WeeklyReport, UUID>,
@@ -24,6 +29,10 @@ public interface WeeklyReportRepository
                     UUID reportId,
                     UUID userId
             );
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select report from WeeklyReport report where report.id = :reportId")
+    Optional<WeeklyReport> findByIdForReview(@Param("reportId") UUID reportId);
 
     Optional<WeeklyReport>
             findByUserIdAndWeekStart(

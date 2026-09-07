@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.weeklyreport.report.ReportStatus;
@@ -19,9 +21,18 @@ import com.weeklyreport.report.SubmissionTrackingStatus;
 import com.weeklyreport.report.dto.ManagerReportDetailResponse;
 import com.weeklyreport.report.dto.ManagerReportFilter;
 import com.weeklyreport.report.dto.ManagerReportSummaryResponse;
+import com.weeklyreport.report.dto.ReportVersionResponse;
+import com.weeklyreport.report.dto.ReportVersionSummaryResponse;
 import com.weeklyreport.report.dto.SubmissionTrackingResponse;
 import com.weeklyreport.report.service.ManagerReportService;
+import com.weeklyreport.report.service.ReportVersionHistoryService;
 import com.weeklyreport.report.service.SubmissionTrackingService;
+import com.weeklyreport.review.dto.CreateReviewRequest;
+import com.weeklyreport.review.dto.ReviewHistoryResponse;
+import com.weeklyreport.review.dto.ReviewResponse;
+import com.weeklyreport.review.service.ReviewService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1/manager/reports")
@@ -29,13 +40,19 @@ public class ManagerReportController {
 
     private final ManagerReportService managerReportService;
     private final SubmissionTrackingService submissionTrackingService;
+    private final ReviewService reviewService;
+    private final ReportVersionHistoryService reportVersionHistoryService;
 
     public ManagerReportController(
             ManagerReportService managerReportService,
-            SubmissionTrackingService submissionTrackingService
+            SubmissionTrackingService submissionTrackingService,
+            ReviewService reviewService,
+            ReportVersionHistoryService reportVersionHistoryService
     ) {
         this.managerReportService = managerReportService;
         this.submissionTrackingService = submissionTrackingService;
+        this.reviewService = reviewService;
+        this.reportVersionHistoryService = reportVersionHistoryService;
     }
 
     @GetMapping
@@ -62,6 +79,39 @@ public class ManagerReportController {
             @RequestParam(required = false) SubmissionTrackingStatus status
     ) {
         return submissionTrackingService.getForWeek(weekStart, status);
+    }
+
+    @PostMapping("/{reportId}/reviews")
+    public ReviewResponse createReview(
+            @PathVariable UUID reportId,
+            @Valid @RequestBody CreateReviewRequest request,
+            @org.springframework.security.core.annotation.AuthenticationPrincipal
+            org.springframework.security.oauth2.jwt.Jwt jwt
+    ) {
+        return reviewService.createReview(
+                reportId,
+                UUID.fromString(jwt.getSubject()),
+                request.action(),
+                request.comment()
+        );
+    }
+
+    @GetMapping("/{reportId}/reviews")
+    public List<ReviewHistoryResponse> reviews(@PathVariable UUID reportId) {
+        return reviewService.getForManager(reportId);
+    }
+
+    @GetMapping("/{reportId}/versions")
+    public List<ReportVersionSummaryResponse> versions(@PathVariable UUID reportId) {
+        return reportVersionHistoryService.listForManager(reportId);
+    }
+
+    @GetMapping("/{reportId}/versions/{versionNumber}")
+    public ReportVersionResponse version(
+            @PathVariable UUID reportId,
+            @PathVariable int versionNumber
+    ) {
+        return reportVersionHistoryService.getForManager(reportId, versionNumber);
     }
 
     @GetMapping("/{reportId}")

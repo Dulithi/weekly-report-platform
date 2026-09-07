@@ -19,6 +19,10 @@ public interface ReportVersionRepository
                     UUID reportId
             );
 
+    List<ReportVersion> findByReportIdAndSubmittedAtIsNotNullOrderByVersionNumberAsc(
+            UUID reportId
+    );
+
     List<ReportVersion>
             findByReportIdOrderByVersionNumberDesc(
                     UUID reportId
@@ -29,6 +33,11 @@ public interface ReportVersionRepository
                     UUID reportId,
                     int versionNumber
             );
+
+    Optional<ReportVersion> findByReportIdAndVersionNumberAndSubmittedAtIsNotNull(
+            UUID reportId,
+            int versionNumber
+    );
 
     Optional<ReportVersion>
             findTopByReportIdOrderByVersionNumberDesc(
