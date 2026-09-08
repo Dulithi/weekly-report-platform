@@ -81,8 +81,10 @@ class CurrentAccountAuthorizationIntegrationTest extends PostgresIntegrationTest
         String memberToken = auth.login(member.getEmail());
         read("/api/v1/users/me", memberToken).andExpect(status().isOk());
 
-        mockMvc.perform(post("/api/v1/admin/users/{id}/deactivate", member.getId())
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+        mockMvc.perform(patch("/api/v1/admin/users/{id}", member.getId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"active\":false}"))
                 .andExpect(status().isNoContent());
 
         read("/api/v1/users/me", memberToken).andExpect(status().isUnauthorized());
@@ -101,7 +103,7 @@ class CurrentAccountAuthorizationIntegrationTest extends PostgresIntegrationTest
         changeRole(adminToken, target, UserRole.TEAM_MEMBER);
 
         read("/api/v1/admin/users", targetToken).andExpect(status().isForbidden());
-        read("/api/v1/manager/team", targetToken).andExpect(status().isForbidden());
+        read("/api/v1/manager/team-members", targetToken).andExpect(status().isForbidden());
         read("/api/v1/users/me", targetToken).andExpect(status().isOk());
         read("/api/v1/reports/me", targetToken).andExpect(status().isOk());
     }
@@ -112,11 +114,11 @@ class CurrentAccountAuthorizationIntegrationTest extends PostgresIntegrationTest
         User target = createUser(UserRole.TEAM_MEMBER);
         String adminToken = auth.login(admin.getEmail());
         String targetToken = auth.login(target.getEmail());
-        read("/api/v1/manager/team", targetToken).andExpect(status().isForbidden());
+        read("/api/v1/manager/team-members", targetToken).andExpect(status().isForbidden());
 
         changeRole(adminToken, target, UserRole.MANAGER);
 
-        read("/api/v1/manager/team", targetToken).andExpect(status().isOk());
+        read("/api/v1/manager/team-members", targetToken).andExpect(status().isOk());
         read("/api/v1/admin/users", targetToken).andExpect(status().isForbidden());
     }
 

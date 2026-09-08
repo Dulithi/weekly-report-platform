@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.weeklyreport.user.UserRole;
 import com.weeklyreport.user.dto.AssignManagerRequest;
 import com.weeklyreport.user.dto.UpdateRoleRequest;
+import com.weeklyreport.user.dto.UpdateUserStateRequest;
 import com.weeklyreport.user.dto.UserSummaryResponse;
 import com.weeklyreport.user.service.UserManagementService;
 import com.weeklyreport.user.service.UserService;
@@ -58,20 +58,19 @@ public class UserAdminController {
         return userService.changeUserRole(userId, request, UUID.fromString(jwt.getSubject()));
     }
 
-    @PostMapping("/{userId}/activate")
-    public ResponseEntity<Void> activateUser(@PathVariable UUID userId, @AuthenticationPrincipal Jwt jwt) {
-
-        userService.activateUser(userId, UUID.fromString(jwt.getSubject()));
+    @PatchMapping("/{userId}")
+    public ResponseEntity<Void> updateState(
+            @PathVariable UUID userId,
+            @Valid @RequestBody UpdateUserStateRequest request,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        UUID actorId = UUID.fromString(jwt.getSubject());
+        if (request.active()) {
+            userService.activateUser(userId, actorId);
+        } else {
+            userService.deactivateUser(userId, actorId);
+        }
         return ResponseEntity.noContent().build();
-
-    }
-
-    @PostMapping("/{userId}/deactivate")
-    public ResponseEntity<Void> deactivateUser(@PathVariable UUID userId, @AuthenticationPrincipal Jwt jwt) {
-
-        userService.deactivateUser(userId, UUID.fromString(jwt.getSubject()));
-        return ResponseEntity.noContent().build();
-
     }
 
     @PutMapping("/{teamMemberId}/manager")

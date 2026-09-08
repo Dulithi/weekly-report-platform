@@ -63,4 +63,18 @@ public interface WeeklyReportRepository
             LocalDate weekStart
     );
 
+    @Query(value = """
+            SELECT
+                COUNT(*) AS total_reports,
+                COUNT(*) FILTER (WHERE status = 'DRAFT') AS draft_reports,
+                COUNT(*) FILTER (WHERE status = 'SUBMITTED') AS submitted_reports,
+                COUNT(*) FILTER (WHERE status = 'NEEDS_CORRECTION') AS needs_correction_reports,
+                COUNT(*) FILTER (WHERE status = 'APPROVED') AS approved_reports
+            FROM weekly_report
+            WHERE user_id = :userId
+            """, nativeQuery = true)
+    TeamMemberReportStatisticsProjection getStatisticsForUser(
+            @Param("userId") UUID userId
+    );
+
 }

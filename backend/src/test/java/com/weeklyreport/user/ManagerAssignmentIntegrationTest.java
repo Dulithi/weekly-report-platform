@@ -357,7 +357,7 @@ class ManagerAssignmentIntegrationTest
         String managerToken = login(manager);
 
         mockMvc.perform(
-                        get("/api/v1/manager/team")
+                        get("/api/v1/manager/team-members")
                                 .header(
                                         HttpHeaders.AUTHORIZATION,
                                         bearer(managerToken)

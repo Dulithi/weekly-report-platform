@@ -19,4 +19,6 @@ public interface ProjectMemberRepository
             UUID projectId,
             UUID userId
     );
+
+    void deleteByProjectId(UUID projectId);
 }

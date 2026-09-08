@@ -27,6 +27,10 @@ public interface  UserRepository extends JpaRepository<User, UUID>{
 
     List<User> findAllByRoleAndActiveTrueOrderByLastNameAscFirstNameAscEmailAsc(UserRole role);
 
+    List<User> findAllByRoleOrderByLastNameAscFirstNameAscEmailAsc(UserRole role);
+
+    Optional<User> findByIdAndRole(UUID id, UserRole role);
+
     @Query("SELECT u FROM User u WHERE (:role IS NULL OR u.role = :role) AND " +
            "(:active IS NULL OR u.active = :active)")
     Page<User> findWithFilters(

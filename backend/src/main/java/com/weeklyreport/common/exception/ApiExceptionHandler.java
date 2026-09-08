@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.weeklyreport.auth.exception.EmailAlreadyExistsException;
 import com.weeklyreport.auth.exception.InvalidRefreshTokenException;
 import com.weeklyreport.auth.exception.LoginRateLimitExceededException;
+import com.weeklyreport.user.exception.InvalidInvitationException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
@@ -161,6 +162,16 @@ public class ApiExceptionHandler {
 
         problem.setTitle("Invalid request");
 
+        return problem;
+    }
+
+    @ExceptionHandler(InvalidInvitationException.class)
+    public ProblemDetail handleInvalidInvitation(InvalidInvitationException exception) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                "Invalid or expired invitation"
+        );
+        problem.setTitle("Invitation cannot be accepted");
         return problem;
     }
 }

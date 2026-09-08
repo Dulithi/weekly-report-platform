@@ -20,6 +20,8 @@ import com.weeklyreport.auth.dto.RegisterRequest;
 import com.weeklyreport.auth.dto.RegisteredUserResponse;
 import com.weeklyreport.auth.service.AuthService;
 import com.weeklyreport.auth.service.RefreshCookieService;
+import com.weeklyreport.user.dto.AcceptUserInvitationRequest;
+import com.weeklyreport.user.service.UserInvitationService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -30,13 +32,16 @@ public class AuthController {
 
     private final AuthService authService;
     private final RefreshCookieService cookieService;
+    private final UserInvitationService invitationService;
 
     public AuthController(
             AuthService authService,
-            RefreshCookieService cookieService
+            RefreshCookieService cookieService,
+            UserInvitationService invitationService
     ) {
         this.authService = authService;
         this.cookieService = cookieService;
+        this.invitationService = invitationService;
     }
 
     @GetMapping("/csrf")
@@ -78,6 +83,14 @@ public class AuthController {
                         cookie.toString()
                 )
                 .body(result.accessToken());
+    }
+
+    @PostMapping("/invitation-acceptances")
+    public ResponseEntity<RegisteredUserResponse> acceptInvitation(
+            @Valid @RequestBody AcceptUserInvitationRequest request
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(invitationService.accept(request));
     }
 
     @PostMapping("/refresh")

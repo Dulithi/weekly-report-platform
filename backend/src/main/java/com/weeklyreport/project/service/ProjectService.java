@@ -18,6 +18,9 @@ import com.weeklyreport.project.dto.ProjectResponse;
 import com.weeklyreport.project.dto.UpdateProjectRequest;
 import com.weeklyreport.project.entity.Project;
 import com.weeklyreport.project.repository.ProjectRepository;
+import com.weeklyreport.project.repository.ProjectMemberRepository;
+import com.weeklyreport.report.repository.CompletedTaskRepository;
+import com.weeklyreport.report.repository.PlannedTaskRepository;
 import com.weeklyreport.user.entity.User;
 import com.weeklyreport.user.repository.UserRepository;
 
@@ -27,12 +30,21 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
     private final ActivityLogService activityLogService;
+    private final ProjectMemberRepository projectMemberRepository;
+    private final CompletedTaskRepository completedTaskRepository;
+    private final PlannedTaskRepository plannedTaskRepository;
 
     public ProjectService(ProjectRepository projectRepository, UserRepository userRepository,
-            ActivityLogService activityLogService) {
+            ActivityLogService activityLogService,
+            ProjectMemberRepository projectMemberRepository,
+            CompletedTaskRepository completedTaskRepository,
+            PlannedTaskRepository plannedTaskRepository) {
         this.projectRepository = projectRepository;
         this.userRepository = userRepository;
         this.activityLogService = activityLogService;
+        this.projectMemberRepository = projectMemberRepository;
+        this.completedTaskRepository = completedTaskRepository;
+        this.plannedTaskRepository = plannedTaskRepository;
     }
 
     @Transactional(readOnly = true)
@@ -146,6 +158,48 @@ public class ProjectService {
     }
 
     @Transactional
+    public void deleteProject(UUID projectId, UUID actorUserId) {
+        Project project = projectRepository.findByIdForUpdate(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project Not Found"));
+
+        if (completedTaskRepository.existsByProjectId(projectId)
+                || plannedTaskRepository.existsByProjectId(projectId)) {
+            throw new ConflictException(
+                    "Projects referenced by reports cannot be deleted; archive the project instead"
+            );
+        }
+
+        String projectName = project.getName();
+        projectMemberRepository.deleteByProjectId(projectId);
+        projectRepository.delete(project);
+
+        activityLogService.record(
+                actorUserId,
+                ActivityType.PROJECT_DELETED,
+                projectId,
+                Map.of("projectName", projectName)
+        );
+    }
+
+    @Transactional
+    public ProjectResponse updateProjectStatus(
+            UUID projectId,
+            ProjectStatus status,
+            UUID actorUserId
+    ) {
+        return status == ProjectStatus.ACTIVE
+                ? activateProject(projectId, actorUserId)
+                : archiveAndReturn(projectId, actorUserId);
+    }
+
+    private ProjectResponse archiveAndReturn(UUID projectId, UUID actorUserId) {
+        archiveProject(projectId, actorUserId);
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project Not Found"));
+        return toResponse(project);
+    }
+
+    @Transactional
     public ProjectResponse activateProject(
             UUID projectId,
             UUID actorUserId
@@ -153,6 +207,10 @@ public class ProjectService {
 
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project Not Found"));
+
+        if (project.getStatus() == ProjectStatus.ACTIVE) {
+            return toResponse(project);
+        }
 
         if (projectRepository.existsByNameIgnoreCaseAndStatusAndIdNot(
                 project.getName(),

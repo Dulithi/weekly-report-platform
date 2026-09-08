@@ -414,6 +414,10 @@ public class WeeklyReportService {
                         versionId
                 );
 
+        // Execute removals before inserting replacements that use the same
+        // per-version unique keys (key blocker, key achievement and task type).
+        timeEntryRepository.flush();
+
         saveCompletedTasks(
                 version,
                 request.completedTasks()

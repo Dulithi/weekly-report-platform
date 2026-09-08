@@ -9,6 +9,8 @@ import com.weeklyreport.report.content.CompletedTask;
 
 public interface CompletedTaskRepository extends JpaRepository<CompletedTask, UUID> {
 
+    boolean existsByProjectId(UUID projectId);
+
     List<CompletedTask>
             findByReportVersionIdOrderBySortOrderAsc(
                     UUID reportVersionId

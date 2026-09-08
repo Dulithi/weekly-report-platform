@@ -8,6 +8,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,6 +20,7 @@ import com.weeklyreport.project.dto.CreateProjectRequest;
 import com.weeklyreport.project.dto.ProjectMemberResponse;
 import com.weeklyreport.project.dto.ProjectResponse;
 import com.weeklyreport.project.dto.UpdateProjectRequest;
+import com.weeklyreport.project.dto.UpdateProjectStatusRequest;
 import com.weeklyreport.project.service.ProjectMemberService;
 import com.weeklyreport.project.service.ProjectService;
 
@@ -67,12 +69,12 @@ public class ProjectAdminController {
     }
 
     @DeleteMapping("/{projectId}")
-    public ResponseEntity<Void> archiveProject(
+    public ResponseEntity<Void> deleteProject(
             @PathVariable UUID projectId,
             @AuthenticationPrincipal Jwt jwt
     ) {
 
-        projectService.archiveProject(
+        projectService.deleteProject(
                 projectId,
                 UUID.fromString(jwt.getSubject())
         );
@@ -80,14 +82,16 @@ public class ProjectAdminController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{projectId}/activate")
-    public ResponseEntity<ProjectResponse> activateProject(
+    @PatchMapping("/{projectId}")
+    public ResponseEntity<ProjectResponse> updateProjectStatus(
             @PathVariable UUID projectId,
+            @Valid @RequestBody UpdateProjectStatusRequest request,
             @AuthenticationPrincipal Jwt jwt
     ) {
 
-        ProjectResponse response = projectService.activateProject(
+        ProjectResponse response = projectService.updateProjectStatus(
                 projectId,
+                request.status(),
                 UUID.fromString(jwt.getSubject())
         );
 

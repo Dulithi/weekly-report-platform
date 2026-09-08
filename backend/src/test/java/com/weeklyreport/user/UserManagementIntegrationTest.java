@@ -68,14 +68,16 @@ class UserManagementIntegrationTest extends PostgresIntegrationTest {
         String token = login(admin);
 
         mockMvc.perform(
-                        post(
-                                "/api/v1/admin/users/{userId}/deactivate",
+                        patch(
+                                "/api/v1/admin/users/{userId}",
                                 member.getId()
                         )
                                 .header(
                                         HttpHeaders.AUTHORIZATION,
                                         bearer(token)
                                 )
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"active\":false}")
                 )
                 .andExpect(status().isNoContent());
 
@@ -114,14 +116,16 @@ class UserManagementIntegrationTest extends PostgresIntegrationTest {
         String token = login(admin);
 
         mockMvc.perform(
-                        post(
-                                "/api/v1/admin/users/{userId}/activate",
+                        patch(
+                                "/api/v1/admin/users/{userId}",
                                 member.getId()
                         )
                                 .header(
                                         HttpHeaders.AUTHORIZATION,
                                         bearer(token)
                                 )
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"active\":true}")
                 )
                 .andExpect(status().isNoContent());
 
@@ -199,14 +203,16 @@ class UserManagementIntegrationTest extends PostgresIntegrationTest {
         String token = login(admin);
 
         mockMvc.perform(
-                        post(
-                                "/api/v1/admin/users/{userId}/deactivate",
+                        patch(
+                                "/api/v1/admin/users/{userId}",
                                 admin.getId()
                         )
                                 .header(
                                         HttpHeaders.AUTHORIZATION,
                                         bearer(token)
                                 )
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"active\":false}")
                 )
                 .andExpect(status().isConflict());
     }

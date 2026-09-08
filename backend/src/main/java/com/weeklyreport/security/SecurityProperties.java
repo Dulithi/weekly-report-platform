@@ -9,7 +9,8 @@ public record SecurityProperties(
         Jwt jwt,
         RefreshToken refreshToken,
         Cors cors,
-        LoginRateLimit loginRateLimit
+        LoginRateLimit loginRateLimit,
+        Invitation invitation
 ) {
 
     public record LoginRateLimit(int maxAttempts, Duration window) {
@@ -41,5 +42,16 @@ public record SecurityProperties(
     public record Cors(
             String allowedOrigin
     ) {
+    }
+
+    public record Invitation(Duration ttl) {
+        public Invitation {
+            if (ttl == null || ttl.compareTo(Duration.ofMinutes(5)) < 0
+                    || ttl.compareTo(Duration.ofDays(30)) > 0) {
+                throw new IllegalArgumentException(
+                        "Invitation TTL must be between 5 minutes and 30 days"
+                );
+            }
+        }
     }
 }

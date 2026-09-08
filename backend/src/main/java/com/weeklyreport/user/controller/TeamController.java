@@ -3,31 +3,32 @@ package com.weeklyreport.user.controller;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.weeklyreport.user.dto.TeamMemberResponse;
-import com.weeklyreport.user.service.UserManagementService;
+import com.weeklyreport.user.dto.TeamMemberProfileResponse;
+import com.weeklyreport.user.service.TeamMemberProfileService;
 
 @RestController 
-@RequestMapping("/api/v1/manager/")
+@RequestMapping("/api/v1/manager/team-members")
 public class TeamController {
 
-    private final UserManagementService userManagementService;
+    private final TeamMemberProfileService teamMemberProfileService;
 
-    public TeamController(UserManagementService userManagementService) {
-        this.userManagementService = userManagementService;
+    public TeamController(TeamMemberProfileService teamMemberProfileService) {
+        this.teamMemberProfileService = teamMemberProfileService;
     }
 
-    @GetMapping("/team")
-    public List<TeamMemberResponse> team(
-            @AuthenticationPrincipal Jwt jwt
-    ) {
-
-        return userManagementService.listTeamMembers(UUID.fromString(jwt.getSubject()));
+    @GetMapping
+    public List<TeamMemberResponse> team() {
+        return teamMemberProfileService.list();
     }
-    
+
+    @GetMapping("/{memberId}")
+    public TeamMemberProfileResponse profile(@PathVariable UUID memberId) {
+        return teamMemberProfileService.get(memberId);
+    }
 }

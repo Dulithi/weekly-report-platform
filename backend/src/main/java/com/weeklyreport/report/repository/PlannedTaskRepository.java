@@ -9,6 +9,8 @@ import com.weeklyreport.report.content.PlannedTask;
 
 public interface PlannedTaskRepository extends JpaRepository<PlannedTask, UUID> {
 
+    boolean existsByProjectId(UUID projectId);
+
     List<PlannedTask> findByReportVersionIdOrderBySortOrderAsc(
             UUID reportVersionId
     );

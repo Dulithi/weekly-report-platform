@@ -3,6 +3,7 @@ package com.weeklyreport.project;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 import java.util.UUID;
+import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -30,6 +32,14 @@ import com.weeklyreport.activity.repository.ActivityLogRepository;
 import com.weeklyreport.auth.dto.LoginRequest;
 import com.weeklyreport.project.entity.Project;
 import com.weeklyreport.project.repository.ProjectRepository;
+import com.weeklyreport.report.TaskPriority;
+import com.weeklyreport.report.TaskStatus;
+import com.weeklyreport.report.content.CompletedTask;
+import com.weeklyreport.report.entity.ReportVersion;
+import com.weeklyreport.report.entity.WeeklyReport;
+import com.weeklyreport.report.repository.CompletedTaskRepository;
+import com.weeklyreport.report.repository.ReportVersionRepository;
+import com.weeklyreport.report.repository.WeeklyReportRepository;
 import com.weeklyreport.support.PostgresIntegrationTest;
 import com.weeklyreport.user.UserRole;
 import com.weeklyreport.user.entity.User;
@@ -60,6 +70,15 @@ class ProjectAdminIntegrationTest extends PostgresIntegrationTest {
 
     @Autowired
     private ActivityLogRepository activityLogRepository;
+
+    @Autowired
+    private WeeklyReportRepository weeklyReportRepository;
+
+    @Autowired
+    private ReportVersionRepository reportVersionRepository;
+
+    @Autowired
+    private CompletedTaskRepository completedTaskRepository;
 
     @Test
     void adminShouldCreateProject()
@@ -158,7 +177,7 @@ class ProjectAdminIntegrationTest extends PostgresIntegrationTest {
     }
 
     @Test
-    void adminShouldArchiveProject() throws Exception {
+    void adminShouldDeleteUnusedProject() throws Exception {
 
         String token = createUserAndLogin(
                 "admin-archive@example.com",
@@ -171,9 +190,15 @@ class ProjectAdminIntegrationTest extends PostgresIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, bearer(token))
         ).andExpect(status().isNoContent());
 
-        Project saved = projectRepository.findById(project.id()).orElseThrow();
+        assertThat(projectRepository.findById(project.id())).isEmpty();
 
-        assertThat(saved.getStatus()).isEqualTo(ProjectStatus.ARCHIVED);
+        Page<ActivityLog> activities = activityLogRepository
+                .findByActivityTypeOrderByCreatedAtDesc(
+                        ActivityType.PROJECT_DELETED,
+                        PageRequest.of(0, 10)
+                );
+        assertThat(activities.getContent())
+                .anyMatch(activity -> activity.getEntityId().equals(project.id()));
     }
 
     @Test
@@ -186,16 +211,21 @@ class ProjectAdminIntegrationTest extends PostgresIntegrationTest {
 
         UUIDHolder project = createProject(token, "Reactivate");
 
-        mockMvc.perform(delete("/api/v1/admin/projects/{id}", project.id())
+        mockMvc.perform(patch("/api/v1/admin/projects/{id}", project.id())
                         .header(HttpHeaders.AUTHORIZATION, bearer(token))
-        ).andExpect(status().isNoContent());
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"ARCHIVED\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("ARCHIVED"));
 
         mockMvc.perform(
-                post("/api/v1/admin/projects/{id}/activate", project.id())
+                patch("/api/v1/admin/projects/{id}", project.id())
                         .header(
                                 HttpHeaders.AUTHORIZATION,
                                 bearer(token)
                         )
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"ACTIVE\"}")
         )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status")
@@ -208,6 +238,47 @@ class ProjectAdminIntegrationTest extends PostgresIntegrationTest {
 
         assertThat(saved.getStatus())
                 .isEqualTo(ProjectStatus.ACTIVE);
+    }
+
+    @Test
+    void referencedProjectShouldBeArchivedInsteadOfDeleted() throws Exception {
+        String email = "admin-referenced-project@example.com";
+        String token = createUserAndLogin(email, UserRole.ADMIN);
+        UUIDHolder projectId = createProject(token, "Historical Project");
+
+        User owner = userRepository.findByEmailIgnoreCase(email).orElseThrow();
+        Project project = projectRepository.findById(projectId.id()).orElseThrow();
+        WeeklyReport report = weeklyReportRepository.saveAndFlush(
+                new WeeklyReport(owner, LocalDate.of(2026, 8, 31))
+        );
+        ReportVersion version = reportVersionRepository.saveAndFlush(
+                new ReportVersion(report, 1, null)
+        );
+        report.setCurrentVersion(version);
+        weeklyReportRepository.saveAndFlush(report);
+        completedTaskRepository.saveAndFlush(new CompletedTask(
+                version, project, "Historical task", null,
+                TaskPriority.MEDIUM, 100, 100, TaskStatus.COMPLETED,
+                null, null, null, 0
+        ));
+
+        mockMvc.perform(delete("/api/v1/admin/projects/{id}", projectId.id())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail").value(
+                        "Projects referenced by reports cannot be deleted; archive the project instead"
+                ));
+
+        assertThat(projectRepository.findById(projectId.id())).isPresent();
+
+        mockMvc.perform(patch("/api/v1/admin/projects/{id}", projectId.id())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"ARCHIVED\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("ARCHIVED"));
+
+        assertThat(completedTaskRepository.existsByProjectId(projectId.id())).isTrue();
     }
 
     @Test
