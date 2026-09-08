@@ -126,6 +126,16 @@ class WeeklyReportUpdateIntegrationTest extends ReportIntegrationTestSupport {
     }
 
     @Test
+    void unassignedProjectReturnsNotFound() throws Exception {
+        var member = user("update-unassigned-project@example.com", UserRole.TEAM_MEMBER);
+        var project = project("Not assigned", member);
+        UUID reportId = createReport(login(member), LocalDate.of(2026, 8, 17));
+
+        update(login(member), reportId, taskWithProject(project.getId()))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void putReplacesExistingContent() throws Exception {
         var member = user("update-replacement@example.com", UserRole.TEAM_MEMBER);
         String token = login(member);

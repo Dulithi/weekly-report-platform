@@ -91,6 +91,13 @@ public class SecurityConfig {
                                 "ADMIN"
                         )
                         .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/projects/*/members"
+                        ).hasAnyRole(
+                                "MANAGER",
+                                "ADMIN"
+                        )
+                        .requestMatchers(
                                 "/api/v1/reports/**"
                         ).hasRole("TEAM_MEMBER")
 

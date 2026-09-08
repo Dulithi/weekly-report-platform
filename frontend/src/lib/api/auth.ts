@@ -82,6 +82,15 @@ export function registerRequest(input: RegisterInput): Promise<RegisteredUser> {
   return postAuthentication<RegisteredUser>("/auth/register", input);
 }
 
+export function acceptInvitationRequest(input: {
+  acceptanceToken: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}): Promise<RegisteredUser> {
+  return postAuthentication<RegisteredUser>("/auth/invitation-acceptances", input);
+}
+
 export function logoutRequest(): Promise<void> {
   // Waiting on the same lock as refresh ensures logout sees and revokes the
   // newest rotated cookie instead of racing an in-flight refresh.

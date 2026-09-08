@@ -146,7 +146,8 @@ public class DemoDataSeeder implements ApplicationRunner {
                 seedReport(
                         members.get(memberIndex),
                         manager,
-                        projects.get((memberIndex + weeksAgo) % projects.size()),
+                        // Each member is assigned to their indexed project and the next one.
+                        projects.get((memberIndex + (weeksAgo % 2)) % projects.size()),
                         week,
                         outcome,
                         weeksAgo * 10 + memberIndex

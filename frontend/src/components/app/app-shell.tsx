@@ -68,6 +68,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <ReportIcon /> My reports
               </NavLink>
             )}
+            {(user.role === "MANAGER" || user.role === "ADMIN") && (
+              <>
+                <NavLink href="/manager/reports" active={pathname.startsWith("/manager/reports")} onNavigate={() => setMenuOpen(false)}>
+                  <ReportIcon /> Team reports
+                </NavLink>
+                <NavLink href="/manager/team-members" active={pathname.startsWith("/manager/team-members")} onNavigate={() => setMenuOpen(false)}>
+                  <TeamIcon /> Team members
+                </NavLink>
+              </>
+            )}
+            {user.role === "ADMIN" && (
+              <>
+                <NavLink href="/admin/projects" active={pathname.startsWith("/admin/projects")} onNavigate={() => setMenuOpen(false)}>
+                  <ProjectIcon /> Projects
+                </NavLink>
+                <NavLink href="/admin/users" active={pathname.startsWith("/admin/users")} onNavigate={() => setMenuOpen(false)}>
+                  <UsersIcon /> People
+                </NavLink>
+              </>
+            )}
           </div>
         </nav>
 
@@ -129,6 +149,18 @@ function HomeIcon() {
 
 function ReportIcon() {
   return <svg viewBox="0 0 24 24" className="size-5" fill="none" aria-hidden="true"><path d="M7 3h7l4 4v14H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /><path d="M14 3v5h5M9 13h6M9 17h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>;
+}
+
+function ProjectIcon() {
+  return <svg viewBox="0 0 24 24" className="size-5" fill="none" aria-hidden="true"><path d="M4 7.5 12 3l8 4.5-8 4.5-8-4.5Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /><path d="m4 12 8 4.5 8-4.5M4 16.5 12 21l8-4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+}
+
+function UsersIcon() {
+  return <svg viewBox="0 0 24 24" className="size-5" fill="none" aria-hidden="true"><path d="M16 20v-1.5a4.5 4.5 0 0 0-4.5-4.5h-3A4.5 4.5 0 0 0 4 18.5V20M10 10a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM17 11a3 3 0 0 0 0-6M17.5 14a4 4 0 0 1 3.5 4v2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+}
+
+function TeamIcon() {
+  return <svg viewBox="0 0 24 24" className="size-5" fill="none" aria-hidden="true"><path d="M15.5 20v-1.5a4.5 4.5 0 0 0-4.5-4.5H7.5A4.5 4.5 0 0 0 3 18.5V20M9.25 10a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM16 11a3 3 0 1 0 0-6M16.5 14a4.5 4.5 0 0 1 4.5 4.5V20" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>;
 }
 
 function LogoutIcon() {

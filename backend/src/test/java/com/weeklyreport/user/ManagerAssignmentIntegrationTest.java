@@ -91,6 +91,15 @@ class ManagerAssignmentIntegrationTest
         ).isEqualTo(
                 manager.getId()
         );
+
+        mockMvc.perform(
+                        get("/api/v1/admin/manager-assignments")
+                                .header(HttpHeaders.AUTHORIZATION, bearer(token))
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].teamMemberId").value(member.getId().toString()))
+                .andExpect(jsonPath("$[0].managerId").value(manager.getId().toString()))
+                .andExpect(jsonPath("$[0].assignedAt").isNotEmpty());
     }
 
     @Test
@@ -419,6 +428,12 @@ class ManagerAssignmentIntegrationTest
                                                 targetManager.getId()
                                         )
                                 )
+                )
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(
+                        get("/api/v1/admin/manager-assignments")
+                                .header(HttpHeaders.AUTHORIZATION, bearer(token))
                 )
                 .andExpect(status().isForbidden());
     }

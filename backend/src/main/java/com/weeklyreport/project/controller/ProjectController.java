@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 import com.weeklyreport.project.ProjectStatus;
 import com.weeklyreport.project.dto.ProjectMemberResponse;
@@ -33,16 +35,24 @@ public class ProjectController {
     @GetMapping
     public Page<ProjectResponse> listProjects(
             @RequestParam(required = false) ProjectStatus status,
-            @PageableDefault(size = 20,sort = "name") Pageable pageable
+            @PageableDefault(size = 20,sort = "name") Pageable pageable,
+            @AuthenticationPrincipal Jwt jwt
     ) {
 
-        return projectService.listProjects(status, pageable);
+        return projectService.listProjects(
+                status,
+                pageable,
+                UUID.fromString(jwt.getSubject())
+        );
     }
 
     @GetMapping("/{projectId}")
-    public ProjectResponse getproject(@PathVariable UUID projectId) {
+    public ProjectResponse getProject(
+            @PathVariable UUID projectId,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
 
-        return projectService.getProject(projectId);
+        return projectService.getProject(projectId, UUID.fromString(jwt.getSubject()));
     }
 
 

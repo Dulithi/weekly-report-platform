@@ -10,6 +10,8 @@ import com.weeklyreport.user.entity.ManagerTeamMember;
 
 public interface ManagerTeamMemberRepository extends JpaRepository<ManagerTeamMember, UUID> {
 
+    List<ManagerTeamMember> findAllByOrderByAssignedAtDesc();
+
     Optional<ManagerTeamMember> findByTeamMemberId(UUID teamMemberId);
 
     List<ManagerTeamMember> findByManagerId(UUID managerId);

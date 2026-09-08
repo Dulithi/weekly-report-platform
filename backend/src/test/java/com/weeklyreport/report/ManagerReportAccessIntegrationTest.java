@@ -69,6 +69,9 @@ class ManagerReportAccessIntegrationTest extends ReportIntegrationTestSupport {
         var second = user("report-filter-second@example.com", UserRole.TEAM_MEMBER);
         var alpha = project("Manager filter alpha", manager);
         var beta = project("Manager filter beta", manager);
+        assignProject(alpha, first);
+        assignProject(beta, first);
+        assignProject(alpha, second);
 
         UUID matching = createPopulatedReport(first, LocalDate.of(2026, 8, 17), alpha.getId());
         submit(first, matching);

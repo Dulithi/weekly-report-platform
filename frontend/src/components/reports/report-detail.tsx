@@ -93,7 +93,7 @@ export function ReportDetail({ reportId }: { reportId: string }) {
 
     <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
       <h2 className="font-semibold text-slate-900">Review history</h2>
-      {reviews.length ? <ol className="mt-4 space-y-4">{reviews.map(review => <li key={review.id} className="border-l-2 border-slate-200 pl-4"><div className="flex flex-wrap items-center gap-2"><Tag>{review.action === "APPROVE" ? "Approved" : "Changes requested"}</Tag><span className="text-xs text-slate-400">Version {review.reportVersionNumber} · {formatDateTime(review.createdAt)}</span></div><p className="mt-2 text-sm font-medium text-slate-700">{review.reviewer.firstName} {review.reviewer.lastName}</p>{review.comment && <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-600">{review.comment}</p>}</li>)}</ol> : <p className="mt-3 text-sm text-slate-500">No manager reviews yet.</p>}
+      {reviews.length ? <ol className="mt-4 space-y-4">{reviews.map(review => <li key={review.id} className="border-l-2 border-slate-200 pl-4"><div className="flex flex-wrap items-center gap-2"><Tag>{review.action === "APPROVED" ? "Approved" : "Changes requested"}</Tag><span className="text-xs text-slate-400">Version {review.reportVersionNumber} · {formatDateTime(review.createdAt)}</span></div><p className="mt-2 text-sm font-medium text-slate-700">{review.reviewer.firstName} {review.reviewer.lastName}</p>{review.comment && <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-600">{review.comment}</p>}</li>)}</ol> : <p className="mt-3 text-sm text-slate-500">No manager reviews yet.</p>}
     </section>
   </article>;
 }

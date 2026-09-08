@@ -78,7 +78,7 @@ export function ReportEditor({ reportId }: { reportId: string }) {
   const editable = report?.status === "DRAFT" || report?.status === "NEEDS_CORRECTION";
   const latestCorrection = useMemo(() => [...reviews]
     .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
-    .find(review => review.action === "REQUEST_CHANGES"), [reviews]);
+    .find(review => review.action === "CHANGES_REQUESTED"), [reviews]);
   const totalMinutes = content?.timeEntries.reduce((sum, entry) => sum + entry.minutes, 0) ?? 0;
 
   function change(next: ReportContent) {

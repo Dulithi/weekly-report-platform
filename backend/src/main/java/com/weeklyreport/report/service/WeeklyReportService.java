@@ -23,6 +23,7 @@ import com.weeklyreport.common.exception.ResourceNotFoundException;
 import com.weeklyreport.project.ProjectStatus;
 import com.weeklyreport.project.entity.Project;
 import com.weeklyreport.project.repository.ProjectRepository;
+import com.weeklyreport.project.repository.ProjectMemberRepository;
 import com.weeklyreport.report.ReportStatus;
 import com.weeklyreport.report.TaskType;
 import com.weeklyreport.report.content.Achievement;
@@ -68,6 +69,7 @@ public class WeeklyReportService {
 
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
+    private final ProjectMemberRepository projectMemberRepository;
 
     private final ReportStatusHistoryRepository statusHistoryRepository;
     private final ActivityLogService activityLogService;
@@ -75,13 +77,14 @@ public class WeeklyReportService {
     private final ReportMapper reportMapper;
     private final Clock clock;
 
-    public WeeklyReportService(AchievementRepository achievementRepository, ActivityLogService activityLogService, BlockerRepository blockerRepository, Clock clock, CompletedTaskRepository completedTaskRepository, PlannedTaskRepository plannedTaskRepository, ProjectRepository projectRepository, ReportMapper reportMapper, ReportVersionRepository reportVersionRepository, ReportStatusHistoryRepository statusHistoryRepository, TimeEntryRepository timeEntryRepository, UserRepository userRepository, WeeklyReportRepository weeklyReportRepository) {
+    public WeeklyReportService(AchievementRepository achievementRepository, ActivityLogService activityLogService, BlockerRepository blockerRepository, Clock clock, CompletedTaskRepository completedTaskRepository, PlannedTaskRepository plannedTaskRepository, ProjectMemberRepository projectMemberRepository, ProjectRepository projectRepository, ReportMapper reportMapper, ReportVersionRepository reportVersionRepository, ReportStatusHistoryRepository statusHistoryRepository, TimeEntryRepository timeEntryRepository, UserRepository userRepository, WeeklyReportRepository weeklyReportRepository) {
         this.achievementRepository = achievementRepository;
         this.activityLogService = activityLogService;
         this.blockerRepository = blockerRepository;
         this.clock = clock;
         this.completedTaskRepository = completedTaskRepository;
         this.plannedTaskRepository = plannedTaskRepository;
+        this.projectMemberRepository = projectMemberRepository;
         this.projectRepository = projectRepository;
         this.reportMapper = reportMapper;
         this.reportVersionRepository = reportVersionRepository;
@@ -193,7 +196,8 @@ public class WeeklyReportService {
 
         replaceVersionContent(
                 version,
-                request
+                request,
+                userId
         );
 
         version.updateNotes(
@@ -321,7 +325,8 @@ public class WeeklyReportService {
     }
 
     private Project resolveProject(
-            UUID projectId
+            UUID projectId,
+            UUID userId
     ) {
 
         if (projectId == null) {
@@ -343,6 +348,11 @@ public class WeeklyReportService {
             throw new ConflictException(
                     "Archived projects cannot be used in editable reports"
             );
+        }
+
+        if (!projectMemberRepository.existsByProjectIdAndUserId(projectId, userId)) {
+            // Use 404 so a guessed identifier does not reveal an unassigned project.
+            throw new ResourceNotFoundException("Project not found");
         }
 
         return project;
@@ -383,7 +393,8 @@ public class WeeklyReportService {
 
     private void replaceVersionContent(
             ReportVersion version,
-            UpdateWeeklyReportRequest request
+            UpdateWeeklyReportRequest request,
+            UUID userId
     ) {
 
         UUID versionId
@@ -420,12 +431,14 @@ public class WeeklyReportService {
 
         saveCompletedTasks(
                 version,
-                request.completedTasks()
+                request.completedTasks(),
+                userId
         );
 
         savePlannedTasks(
                 version,
-                request.plannedTasks()
+                request.plannedTasks(),
+                userId
         );
 
         saveBlockers(
@@ -446,7 +459,8 @@ public class WeeklyReportService {
 
     private void saveCompletedTasks(
             ReportVersion version,
-            List<CompletedTaskRequest> requests
+            List<CompletedTaskRequest> requests,
+            UUID userId
     ) {
 
         for (int index = 0;
@@ -458,7 +472,8 @@ public class WeeklyReportService {
 
             Project project
                     = resolveProject(
-                            request.projectId()
+                            request.projectId(),
+                            userId
                     );
 
             CompletedTask task
@@ -487,7 +502,8 @@ public class WeeklyReportService {
 
     private void savePlannedTasks(
             ReportVersion version,
-            List<PlannedTaskRequest> requests
+            List<PlannedTaskRequest> requests,
+            UUID userId
     ) {
 
         for (int index = 0;
@@ -499,7 +515,8 @@ public class WeeklyReportService {
 
             Project project
                     = resolveProject(
-                            request.projectId()
+                            request.projectId(),
+                            userId
                     );
 
             PlannedTask task

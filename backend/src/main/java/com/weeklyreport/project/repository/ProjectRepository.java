@@ -36,4 +36,21 @@ public interface ProjectRepository
             ProjectStatus status,
             Pageable pageable
     );
+
+    @Query("""
+            select project
+            from Project project
+            where (:status is null or project.status = :status)
+              and exists (
+                select 1
+                from ProjectMember membership
+                where membership.project = project
+                  and membership.user.id = :userId
+              )
+            """)
+    Page<Project> findAssignedToUser(
+            @Param("userId") UUID userId,
+            @Param("status") ProjectStatus status,
+            Pageable pageable
+    );
 }

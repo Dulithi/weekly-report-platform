@@ -242,6 +242,19 @@ class ProjectMemberIntegrationTest extends PostgresIntegrationTest {
     }
 
     @Test
+    void nonTeamMemberShouldNotBeAssigned() throws Exception {
+        User admin = createUser("pm-role-admin@example.com", UserRole.ADMIN);
+        User manager = createUser("pm-role-manager@example.com", UserRole.MANAGER);
+        Project project = createProject("Role Protected Membership", admin);
+
+        mockMvc.perform(post("/api/v1/admin/projects/{projectId}/members", project.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(login(admin)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"userId\":\"%s\"}".formatted(manager.getId())))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
     void adminShouldRemoveProjectMember() throws Exception {
 
         User admin = createUser(

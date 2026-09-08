@@ -19,6 +19,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.springframework.transaction.annotation.Transactional;
 
 import com.weeklyreport.project.entity.Project;
+import com.weeklyreport.project.entity.ProjectMember;
+import com.weeklyreport.project.repository.ProjectMemberRepository;
 import com.weeklyreport.project.repository.ProjectRepository;
 import com.weeklyreport.support.AuthTestHelper;
 import com.weeklyreport.support.PostgresIntegrationTest;
@@ -38,6 +40,9 @@ abstract class ReportIntegrationTestSupport extends PostgresIntegrationTest {
 
     @Autowired
     protected ProjectRepository projectRepository;
+
+    @Autowired
+    protected ProjectMemberRepository projectMemberRepository;
 
     @Autowired
     protected UserRepository userRepository;
@@ -66,6 +71,10 @@ abstract class ReportIntegrationTestSupport extends PostgresIntegrationTest {
 
     protected Project project(String name, User creator) {
         return projectRepository.saveAndFlush(new Project(name, null, creator));
+    }
+
+    protected void assignProject(Project project, User member) {
+        projectMemberRepository.saveAndFlush(new ProjectMember(project, member));
     }
 
     protected String login(User user) throws Exception {

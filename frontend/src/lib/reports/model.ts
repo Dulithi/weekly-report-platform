@@ -36,15 +36,58 @@ export interface WeeklyReportSummary {
   submittedAt: string | null;
   updatedAt: string;
 }
-export interface Project { id: string; name: string; status: "ACTIVE" | "ARCHIVED" }
+export interface Project {
+  id: string; name: string; description: string | null; status: "ACTIVE" | "ARCHIVED";
+  createdBy: string; createdAt: string; updatedAt: string;
+}
+export interface ProjectMember {
+  id: string; email: string; firstName: string; lastName: string;
+  role: "TEAM_MEMBER" | "MANAGER" | "ADMIN";
+}
+export interface UserSummary extends ProjectMember { active: boolean }
+export interface ManagerAssignment {
+  teamMemberId: string; managerId: string; assignedAt: string;
+}
+export type InvitationStatus = "PENDING" | "ACCEPTED" | "EXPIRED" | "REVOKED";
+export interface UserInvitation {
+  id: string; email: string; role: ProjectMember["role"]; status: InvitationStatus;
+  expiresAt: string; acceptedAt: string | null; revokedAt: string | null; createdAt: string;
+}
+export interface CreatedUserInvitation {
+  invitation: UserInvitation; acceptanceToken: string;
+}
+export interface ReportMember {
+  id: string; email: string; firstName: string; lastName: string; active: boolean;
+}
+export interface TeamMemberReportStatistics {
+  totalReports: number; draftReports: number; submittedReports: number;
+  needsCorrectionReports: number; approvedReports: number;
+}
+export interface TeamMemberProfile {
+  member: ReportMember; statistics: TeamMemberReportStatistics;
+}
+export interface ManagerReportSummary {
+  id: string; member: ReportMember; weekStart: string; weekEnd: string;
+  status: ReportStatus; submittedAt: string | null; approvedAt: string | null; updatedAt: string;
+}
+export type ReportVersion = WeeklyReport["currentVersion"];
+export interface ManagerReportDetail {
+  id: string; member: ReportMember; weekStart: string; weekEnd: string;
+  status: ReportStatus; submittedAt: string | null; approvedAt: string | null;
+  submittedVersion: ReportVersion;
+}
+export interface ReportVersionSummary {
+  id: string; versionNumber: number; createdAt: string; submittedAt: string | null;
+  submitted: boolean; current: boolean;
+}
 export interface Page<T> {
   content: T[]; number: number; size: number; totalElements: number;
   totalPages: number; first: boolean; last: boolean;
 }
 export interface Review {
   id: string; reportVersionId: string; reportVersionNumber: number;
-  action: "APPROVE" | "REQUEST_CHANGES"; comment: string | null;
-  reviewer: { id: string; email: string; firstName: string; lastName: string; active: boolean };
+  action: "APPROVED" | "CHANGES_REQUESTED"; comment: string | null;
+  reviewer: ReportMember;
   createdAt: string;
 }
 export const label = (value: string) => value.toLowerCase().replaceAll("_", " ").replace(/^./, c => c.toUpperCase());

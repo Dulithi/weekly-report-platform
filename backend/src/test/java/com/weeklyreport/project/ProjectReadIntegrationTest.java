@@ -19,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.weeklyreport.auth.dto.LoginRequest;
 import com.weeklyreport.project.entity.Project;
+import com.weeklyreport.project.entity.ProjectMember;
+import com.weeklyreport.project.repository.ProjectMemberRepository;
 import com.weeklyreport.project.repository.ProjectRepository;
 import com.weeklyreport.support.PostgresIntegrationTest;
 import com.weeklyreport.user.UserRole;
@@ -45,20 +47,22 @@ class ProjectReadIntegrationTest extends PostgresIntegrationTest {
     private ProjectRepository projectRepository;
 
     @Autowired
+    private ProjectMemberRepository projectMemberRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void authenticatedMemberShouldListProjects() throws Exception {
+    void teamMemberShouldOnlyListAndOpenAssignedProjects() throws Exception {
 
         User member = createUser(
                 "project-reader@example.com",
                 UserRole.TEAM_MEMBER
         );
 
-        createProject(
-                "Visible Project",
-                member
-        );
+        Project assigned = createProject("Assigned Project", member);
+        Project unassigned = createProject("Unassigned Project", member);
+        projectMemberRepository.saveAndFlush(new ProjectMember(assigned, member));
 
         String token = login(member);
 
@@ -70,10 +74,33 @@ class ProjectReadIntegrationTest extends PostgresIntegrationTest {
                         )
         )
                 .andExpect(status().isOk())
-                .andExpect(
-                        jsonPath("$.content")
-                                .isArray()
-                );
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].id").value(assigned.getId().toString()));
+
+        mockMvc.perform(get("/api/v1/projects/{id}", assigned.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/projects/{id}", unassigned.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void managerShouldListAndOpenAllProjectsWithoutMembership() throws Exception {
+        User manager = createUser("project-manager@example.com", UserRole.MANAGER);
+        Project first = createProject("Manager Project One", manager);
+        createProject("Manager Project Two", manager);
+
+        String token = login(manager);
+        mockMvc.perform(get("/api/v1/projects")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(2));
+
+        mockMvc.perform(get("/api/v1/projects/{id}", first.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isOk());
     }
 
     @Test

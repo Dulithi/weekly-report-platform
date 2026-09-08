@@ -20,6 +20,7 @@ import com.weeklyreport.project.entity.ProjectMemberId;
 import com.weeklyreport.project.repository.ProjectMemberRepository;
 import com.weeklyreport.project.repository.ProjectRepository;
 import com.weeklyreport.user.entity.User;
+import com.weeklyreport.user.UserRole;
 import com.weeklyreport.user.repository.UserRepository;
 
 
@@ -60,6 +61,10 @@ public class ProjectMemberService {
 
         if(!member.isActive()) {
             throw new ConflictException("Cannot assign inactive user to a project");
+        }
+
+        if (member.getRole() != UserRole.TEAM_MEMBER) {
+            throw new ConflictException("Only team members can be assigned to projects");
         }
 
         if(projectMemberRepository.existsByProjectIdAndUserId(projectId, request.userId())){

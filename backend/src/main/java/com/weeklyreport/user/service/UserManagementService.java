@@ -13,6 +13,7 @@ import com.weeklyreport.common.exception.ConflictException;
 import com.weeklyreport.common.exception.ResourceNotFoundException;
 import com.weeklyreport.user.UserRole;
 import com.weeklyreport.user.dto.AssignManagerRequest;
+import com.weeklyreport.user.dto.ManagerAssignmentResponse;
 import com.weeklyreport.user.dto.TeamMemberResponse;
 import com.weeklyreport.user.entity.ManagerTeamMember;
 import com.weeklyreport.user.entity.User;
@@ -105,6 +106,17 @@ public class UserManagementService {
         );
     }
 
+
+    @Transactional(readOnly = true)
+    public List<ManagerAssignmentResponse> listManagerAssignments() {
+        return managerTeamMemberRepository.findAllByOrderByAssignedAtDesc().stream()
+                .map(assignment -> new ManagerAssignmentResponse(
+                        assignment.getTeamMemberId(),
+                        assignment.getManager().getId(),
+                        assignment.getAssignedAt()
+                ))
+                .toList();
+    }
 
     @Transactional(readOnly = true)
     public List<TeamMemberResponse> listTeamMembers(UUID managerId) {

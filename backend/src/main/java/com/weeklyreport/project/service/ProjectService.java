@@ -22,6 +22,7 @@ import com.weeklyreport.project.repository.ProjectMemberRepository;
 import com.weeklyreport.report.repository.CompletedTaskRepository;
 import com.weeklyreport.report.repository.PlannedTaskRepository;
 import com.weeklyreport.user.entity.User;
+import com.weeklyreport.user.UserRole;
 import com.weeklyreport.user.repository.UserRepository;
 
 @Service
@@ -48,9 +49,15 @@ public class ProjectService {
     }
 
     @Transactional(readOnly = true)
-    public ProjectResponse getProject(UUID projectId) {
+    public ProjectResponse getProject(UUID projectId, UUID requesterId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project Not Found"));
+
+        User requester = getUser(requesterId);
+        if (requester.getRole() == UserRole.TEAM_MEMBER
+                && !projectMemberRepository.existsByProjectIdAndUserId(projectId, requesterId)) {
+            throw new ResourceNotFoundException("Project Not Found");
+        }
 
         return toResponse(project);
     }
@@ -240,18 +247,22 @@ public class ProjectService {
     @Transactional(readOnly = true)
     public Page<ProjectResponse> listProjects(
             ProjectStatus status,
-            Pageable pageable
+            Pageable pageable,
+            UUID requesterId
     ) {
-
-        Page<Project> result
-                = status == null
+        User requester = getUser(requesterId);
+        Page<Project> result = requester.getRole() == UserRole.TEAM_MEMBER
+                ? projectRepository.findAssignedToUser(requesterId, status, pageable)
+                : status == null
                         ? projectRepository.findAll(pageable)
-                        : projectRepository.findByStatus(
-                                status,
-                                pageable
-                        );
+                        : projectRepository.findByStatus(status, pageable);
 
         return result.map(this::toResponse);
+    }
+
+    private User getUser(UUID userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
     private String normalizeOptional(
