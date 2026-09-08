@@ -81,6 +81,21 @@ demo accounts use the password supplied through `DEMO_PASSWORD`.
   `sam.perera@weekly.local`, `mei.chen@weekly.local`, and
   `jordan.silva@weekly.local`
 
+### API Documentation
+
+The `dev` Spring profile also enables the generated OpenAPI contract and Swagger
+UI. They are disabled by default outside development so a deployed production
+instance does not publish its endpoint catalogue accidentally.
+
+- Swagger UI: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+- OpenAPI JSON: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
+
+To call a protected endpoint in Swagger UI, log in and copy the returned access
+token into **Authorize → bearerAuth**. Authentication POST requests also use the
+application's CSRF protection: first call `GET /api/v1/auth/csrf`, then copy the
+response token into **Authorize → csrfToken**. Swagger UI keeps the matching
+same-origin cookie set by the CSRF endpoint.
+
 ### Start Frontend
 
 ```bash
@@ -94,3 +109,4 @@ npm run dev
 - Frontend : [http://localhost:3000](http://localhost:3000)
 - Backend : [http://localhost:8080](http://localhost:8080)
 - Health : [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health)
+- Swagger UI (dev profile): [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)

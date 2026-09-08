@@ -61,6 +61,14 @@ public class SecurityConfig {
                                 "/actuator/health"
                         ).permitAll()
 
+                        // These routes exist only when Springdoc is explicitly enabled.
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
+
                         .requestMatchers(HttpMethod.GET, "/api/v1/auth/csrf").permitAll()
 
                         .requestMatchers(

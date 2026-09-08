@@ -37,6 +37,14 @@ management:
     health:
       show-details: never
 
+# API documentation is opt-in so a production deployment does not publish its
+# complete endpoint catalogue by accident. The dev profile enables it below.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
 app:
   demo-seed:
     enabled: ${DEMO_SEED_ENABLED:false}
