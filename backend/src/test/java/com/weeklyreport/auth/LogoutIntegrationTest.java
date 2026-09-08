@@ -135,7 +135,7 @@ class LogoutIntegrationTest
 
         Cookie cookie =
                 new Cookie(
-                        "refresh_token",
+                        "weekly_report_refresh",
                         "not-a-real-token"
                 );
 

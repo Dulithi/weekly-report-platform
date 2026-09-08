@@ -1,26 +1,111 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f7f7f4;
+  --foreground: #17201d;
+  --brand: #146c5a;
+  --brand-strong: #0b4f42;
+  --brand-soft: #dff3ec;
+  --accent: #ef9f4d;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-soft: var(--brand-soft);
+  --color-accent: var(--accent);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: var(--background);
 }
 
 body {
+  margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Avenir Next", "Segoe UI", Arial, Helvetica, sans-serif;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.report-input,
+.report-select,
+.report-textarea {
+  width: 100%;
+  border: 1px solid #dfe4e8;
+  border-radius: 0.75rem;
+  background: white;
+  padding: 0.7rem 0.8rem;
+  color: #17201d;
+  outline: none;
+  transition: border-color 150ms, box-shadow 150ms;
+}
+
+.report-textarea { min-height: 5.5rem; resize: vertical; }
+.report-input:focus, .report-select:focus, .report-textarea:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 4px rgb(20 108 90 / 0.1);
+}
+.report-input:disabled, .report-select:disabled, .report-textarea:disabled {
+  cursor: not-allowed;
+  background: #f8fafc;
+  color: #64748b;
+}
+.report-primary, .report-secondary {
+  border-radius: 0.75rem;
+  padding: 0.7rem 1rem;
+  font-weight: 600;
+  transition: background-color 150ms, border-color 150ms, opacity 150ms;
+}
+.report-primary { background: var(--brand); color: white; }
+.report-primary:hover { background: var(--brand-strong); }
+.report-secondary { border: 1px solid #dfe4e8; background: white; color: #334155; }
+.report-secondary:hover { background: #f8fafc; }
+.report-primary:disabled, .report-secondary:disabled { cursor: not-allowed; opacity: 0.5; }
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: #bce4d7;
+  color: #083b32;
+}
+
+@keyframes soft-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-soft-in {
+  animation: soft-in 420ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

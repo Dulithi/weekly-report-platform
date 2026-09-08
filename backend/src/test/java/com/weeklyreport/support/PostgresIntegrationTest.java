@@ -4,8 +4,12 @@ import java.util.Base64;
 
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
+// Keep developer shell variables from inserting demo fixtures into ordinary
+// integration tests. The dedicated seeder test overrides this property.
+@TestPropertySource(properties = "app.demo-seed.enabled=false")
 public abstract class PostgresIntegrationTest {
 
     protected static final PostgreSQLContainer POSTGRES;

@@ -7,16 +7,14 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import jakarta.persistence.EntityManager;
 
 import com.weeklyreport.project.dto.AssignProjectMemberRequest;
 import com.weeklyreport.project.dto.CreateProjectRequest;
@@ -43,6 +41,8 @@ import com.weeklyreport.user.dto.AssignManagerRequest;
 import com.weeklyreport.user.entity.User;
 import com.weeklyreport.user.repository.UserRepository;
 import com.weeklyreport.user.service.UserManagementService;
+
+import jakarta.persistence.EntityManager;
 
 @Component
 @Profile("dev")
@@ -117,7 +117,7 @@ public class DemoDataSeeder implements ApplicationRunner {
         ));
 
         List<UUID> projects = List.of(
-                createProject("Client Portal", "Customer-facing account portal", admin),
+                createProject("New Client Portal", "Customer-facing account portal", admin),
                 createProject("Internal Tooling", "Engineering productivity tools", admin),
                 createProject("Research and Development", "Product experiments", admin),
                 createProject("Operations", "Internal operations and support", admin)

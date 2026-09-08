@@ -71,7 +71,7 @@ class RefreshTokenIntegrationTest extends PostgresIntegrationTest {
                         header().string(
                                 HttpHeaders.SET_COOKIE,
                                 containsString(
-                                        "refresh_token="
+                                        "weekly_report_refresh="
                                 )
                         )
                 );

@@ -83,7 +83,7 @@ class LoginIntegrationTest
                         header().string(
                                 "Set-Cookie",
                                 containsString(
-                                        "refresh_token="
+                                        "weekly_report_refresh="
                                 )
                         )
                 )

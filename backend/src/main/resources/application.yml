@@ -67,7 +67,9 @@ app:
 
     refresh-token:
       ttl: 7d
-      cookie-name: refresh_token
+      # An application-specific name avoids collisions with unrelated apps on
+      # localhost and with sibling services deployed on the same host.
+      cookie-name: ${REFRESH_COOKIE_NAME:weekly_report_refresh}
       secure: ${REFRESH_COOKIE_SECURE}
       same-site: ${REFRESH_COOKIE_SAME_SITE}
 

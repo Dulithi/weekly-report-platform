@@ -74,7 +74,7 @@ class AuthCsrfIntegrationTest extends PostgresIntegrationTest {
                         .content(objectMapper.writeValueAsString(java.util.Map.of(
                                 "email", user.getEmail(), "password", "VerySecurePassword123!"))))
                 .andExpect(status().isOk()).andReturn();
-        Cookie refresh = login.getResponse().getCookie("refresh_token");
+        Cookie refresh = login.getResponse().getCookie("weekly_report_refresh");
         assertThat(refresh).isNotNull();
 
         // Rejection must happen before consuming or rotating the refresh token.
@@ -87,7 +87,7 @@ class AuthCsrfIntegrationTest extends PostgresIntegrationTest {
         var renewed = mockMvc.perform(post("/api/v1/auth/refresh")
                         .cookie(refresh, proof.cookie()).header(proof.headerName(), proof.token()))
                 .andExpect(status().isOk()).andReturn();
-        Cookie replacement = renewed.getResponse().getCookie("refresh_token");
+        Cookie replacement = renewed.getResponse().getCookie("weekly_report_refresh");
         assertThat(replacement).isNotNull();
 
         mockMvc.perform(post("/api/v1/auth/logout").cookie(replacement, proof.cookie()))
