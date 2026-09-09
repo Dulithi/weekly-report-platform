@@ -163,7 +163,7 @@ Run the frontend static checks and production build:
 cd frontend
 npm ci
 npm run lint
-npx tsc --noEmit
+npm run typecheck
 npm run build
 ```
 
