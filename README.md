@@ -172,20 +172,16 @@ The assessment browser scenarios, expected results and production checks are in
 the full submit → correction → resubmit → approve workflow before recording or
 deploying.
 
-## Assessment Deliverables
+### Continuous integration
 
-- [Requirement traceability matrix](docs/assessment-traceability.md)
-- [Manual test plan](docs/manual-test-plan.md)
-- [Fresh start, email and deployment guide](docs/fresh-start-email-and-deployment.md)
-- [ER diagram (PNG)](docs/er-diagram.png) and [editable Mermaid source](docs/er-diagram.mmd)
-- [Editable presentation](docs/weekly-report-platform-presentation.pptx)
-- [Camera-on demo and submission script](docs/demo-script.md)
-- [Architecture decisions](docs/decisions/ADR-001-architecture.md)
+[GitHub Actions CI](.github/workflows/ci.yml) runs on pushes to `main`, pull
+requests and manual dispatches. It runs all PostgreSQL-backed backend tests and
+the frontend ESLint, TypeScript and production-build checks. After a successful
+push to `main`, it also verifies that both production Docker images build.
+Documentation-only changes skip CI, and pull requests skip the duplicate Docker
+packaging jobs to conserve hosted-runner minutes. The workflow has read-only
+repository permissions and receives no application secrets.
 
-The presentation can be uploaded and converted to Google Slides. Review the
-converted deck before sharing because Google Slides may substitute fonts or move
-elements. The camera-on recording, public sharing permissions, final Drive folder
-and submission email require the submitter's own accounts.
 
 ## Production Configuration
 
