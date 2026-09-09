@@ -76,7 +76,7 @@ export function TeamMemberDirectory() {
           </span>
         </Link>
       </li>)}
-    </ul> : !error && <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center"><h2 className="text-xl font-semibold text-slate-900">No matching team members</h2><p className="mt-2 text-slate-500">Adjust the search or account-state filter.</p></div>}
+    </ul> : !error && <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center"><h2 className="text-xl font-semibold text-slate-900">{members.length === 0 ? "No assigned team members" : "No matching team members"}</h2><p className="mt-2 text-slate-500">{members.length === 0 ? "An administrator must assign team members to you before their profiles appear here." : "Adjust the search or account-state filter."}</p></div>}
   </section>;
 }
 

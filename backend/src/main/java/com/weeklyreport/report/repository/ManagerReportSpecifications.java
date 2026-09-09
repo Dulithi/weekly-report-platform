@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.Collection;
 
 import org.springframework.data.jpa.domain.Specification;
 
@@ -24,6 +25,7 @@ public final class ManagerReportSpecifications {
     }
 
     public static Specification<WeeklyReport> filteredBy(
+            Collection<UUID> visibleMemberIds,
             UUID memberId,
             UUID projectId,
             LocalDate earliestWeekStart,
@@ -36,6 +38,7 @@ public final class ManagerReportSpecifications {
             }
 
             List<Predicate> predicates = new ArrayList<>();
+            predicates.add(report.get("user").get("id").in(visibleMemberIds));
             if (memberId != null) {
                 predicates.add(builder.equal(report.get("user").get("id"), memberId));
             }

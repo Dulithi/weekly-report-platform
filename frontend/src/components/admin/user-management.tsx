@@ -119,7 +119,7 @@ export function UserManagement() {
       setInviteEmail("");
       setNotice(
         "Invitation created for " + created.invitation.email
-          + ". Copy the link now; the token is not stored in readable form.",
+          + ". Email delivery is attempted when SMTP is enabled. Copy the link as a secure fallback; the token is not stored in readable form.",
       );
       await load();
     } catch (caught) {

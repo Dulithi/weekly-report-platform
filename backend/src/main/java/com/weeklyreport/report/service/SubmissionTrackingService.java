@@ -22,41 +22,40 @@ import com.weeklyreport.report.entity.WeeklyReport;
 import com.weeklyreport.report.repository.ReportFirstSubmissionProjection;
 import com.weeklyreport.report.repository.ReportVersionRepository;
 import com.weeklyreport.report.repository.WeeklyReportRepository;
-import com.weeklyreport.user.UserRole;
 import com.weeklyreport.user.entity.User;
-import com.weeklyreport.user.repository.UserRepository;
+import com.weeklyreport.user.service.ManagerScopeService;
 
 @Service
 public class SubmissionTrackingService {
 
-    private final UserRepository userRepository;
     private final WeeklyReportRepository weeklyReportRepository;
     private final ReportVersionRepository reportVersionRepository;
     private final Clock clock;
+    private final ManagerScopeService managerScopeService;
 
     public SubmissionTrackingService(
-            UserRepository userRepository,
             WeeklyReportRepository weeklyReportRepository,
             ReportVersionRepository reportVersionRepository,
-            Clock clock
+            Clock clock,
+            ManagerScopeService managerScopeService
     ) {
-        this.userRepository = userRepository;
         this.weeklyReportRepository = weeklyReportRepository;
         this.reportVersionRepository = reportVersionRepository;
         this.clock = clock;
+        this.managerScopeService = managerScopeService;
     }
 
     @Transactional(readOnly = true)
     public List<SubmissionTrackingResponse> getForWeek(
+            UUID actorId,
             LocalDate weekStart,
             SubmissionTrackingStatus status
     ) {
         validateMonday(weekStart);
 
-        List<User> members = userRepository
-                .findAllByRoleAndActiveTrueOrderByLastNameAscFirstNameAscEmailAsc(
-                        UserRole.TEAM_MEMBER
-                );
+        List<User> members = managerScopeService.visibleMembers(actorId).stream()
+                .filter(User::isActive)
+                .toList();
         if (members.isEmpty()) {
             return List.of();
         }

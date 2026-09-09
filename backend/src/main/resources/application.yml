@@ -24,8 +24,30 @@ spring:
       pageable:
         max-page-size: 100
 
+  mail:
+    host: ${SMTP_HOST:localhost}
+    port: ${SMTP_PORT:1025}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    protocol: smtp
+    test-connection: false
+    properties:
+      "[mail.smtp.auth]": ${SMTP_AUTH:false}
+      "[mail.smtp.starttls.enable]": ${SMTP_STARTTLS:false}
+      "[mail.smtp.starttls.required]": ${SMTP_STARTTLS_REQUIRED:false}
+      "[mail.smtp.connectiontimeout]": ${SMTP_CONNECTION_TIMEOUT_MS:5000}
+      "[mail.smtp.timeout]": ${SMTP_READ_TIMEOUT_MS:5000}
+      "[mail.smtp.writetimeout]": ${SMTP_WRITE_TIMEOUT_MS:5000}
+
 server:
   port: ${SERVER_PORT:8080}
+
+logging:
+  level:
+    root: INFO
+    com.weeklyreport: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} level=%-5level requestId=%X{requestId:-none} logger=%logger{36} message=%msg%n"
 
 management:
   endpoints:
@@ -46,6 +68,38 @@ springdoc:
     enabled: false
 
 app:
+  bootstrap-admin:
+    enabled: ${BOOTSTRAP_ADMIN_ENABLED:false}
+    email: ${BOOTSTRAP_ADMIN_EMAIL:}
+    password: ${BOOTSTRAP_ADMIN_PASSWORD:}
+    first-name: ${BOOTSTRAP_ADMIN_FIRST_NAME:}
+    last-name: ${BOOTSTRAP_ADMIN_LAST_NAME:}
+
+  invitation-mail:
+    enabled: ${INVITATION_EMAIL_ENABLED:false}
+    from: ${INVITATION_EMAIL_FROM:}
+    acceptance-base-url: ${INVITATION_ACCEPTANCE_BASE_URL:${FRONTEND_URL}}
+    application-name: ${INVITATION_EMAIL_APP_NAME:Weekly Report Platform}
+
+  assistant:
+    enabled: ${AI_ASSISTANT_ENABLED:false}
+    api-key: ${OPENAI_API_KEY:}
+    base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
+    model: ${OPENAI_MODEL:gpt-5.6-luna}
+    reasoning-effort: ${OPENAI_REASONING_EFFORT:low}
+    connect-timeout: ${OPENAI_CONNECT_TIMEOUT:2s}
+    request-timeout: ${OPENAI_REQUEST_TIMEOUT:20s}
+    max-question-characters: ${AI_MAX_QUESTION_CHARACTERS:500}
+    max-history-messages: ${AI_MAX_HISTORY_MESSAGES:6}
+    max-history-characters: ${AI_MAX_HISTORY_CHARACTERS:2000}
+    max-weeks: ${AI_MAX_WEEKS:12}
+    max-reports: ${AI_MAX_REPORTS:40}
+    max-context-characters: ${AI_MAX_CONTEXT_CHARACTERS:60000}
+    max-output-tokens: ${AI_MAX_OUTPUT_TOKENS:600}
+    rate-limit:
+      max-requests: ${AI_MAX_REQUESTS_PER_WINDOW:10}
+      window: ${AI_REQUEST_WINDOW:1m}
+
   demo-seed:
     enabled: ${DEMO_SEED_ENABLED:false}
     password: ${DEMO_PASSWORD:}

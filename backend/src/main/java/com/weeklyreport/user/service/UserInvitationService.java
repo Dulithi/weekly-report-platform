@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +36,7 @@ import com.weeklyreport.user.entity.UserInvitation;
 import com.weeklyreport.user.exception.InvalidInvitationException;
 import com.weeklyreport.user.repository.UserInvitationRepository;
 import com.weeklyreport.user.repository.UserRepository;
+import com.weeklyreport.user.mail.UserInvitationCreatedEvent;
 
 @Service
 public class UserInvitationService {
@@ -47,6 +49,7 @@ public class UserInvitationService {
     private final ActivityLogService activityLogService;
     private final SecurityProperties properties;
     private final Clock clock;
+    private final ApplicationEventPublisher eventPublisher;
 
     public UserInvitationService(
             UserInvitationRepository invitationRepository,
@@ -54,7 +57,8 @@ public class UserInvitationService {
             PasswordEncoder passwordEncoder,
             ActivityLogService activityLogService,
             SecurityProperties properties,
-            Clock clock
+            Clock clock,
+            ApplicationEventPublisher eventPublisher
     ) {
         this.invitationRepository = invitationRepository;
         this.userRepository = userRepository;
@@ -62,6 +66,7 @@ public class UserInvitationService {
         this.activityLogService = activityLogService;
         this.properties = properties;
         this.clock = clock;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -104,6 +109,13 @@ public class UserInvitationService {
                 invitation.getId(),
                 Map.of("role", invitation.getRole().name())
         );
+        eventPublisher.publishEvent(new UserInvitationCreatedEvent(
+                invitation.getId(),
+                invitation.getEmail(),
+                invitation.getRole(),
+                invitation.getExpiresAt(),
+                rawToken
+        ));
         return new CreatedUserInvitationResponse(toResponse(invitation, now), rawToken);
     }
 

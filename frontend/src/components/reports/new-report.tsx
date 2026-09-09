@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/auth-provider";
 import { ApiError } from "@/lib/api/client";
 import { isMonday, weekEnd, type Page, type WeeklyReport, type WeeklyReportSummary } from "@/lib/reports/model";
+import { WeekPicker } from "@/components/ui/week-picker";
 
 export function NewReport() {
   const { user, request } = useAuth();
@@ -42,9 +43,7 @@ export function NewReport() {
     <h1 className="mt-2 text-3xl font-semibold tracking-tight">Your weekly report</h1>
     <p className="my-5 text-slate-600">Choose a week to create a private draft or reopen your existing report.</p>
     <form onSubmit={create} className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6">
-      <label className="block text-sm font-medium">Week starting (Monday)
-        <input className="report-input mt-2" type="date" required value={date} onChange={e => setDate(e.target.value)} disabled={pending} />
-      </label>
+      <WeekPicker label="Week starting" value={date} onChange={setDate} disabled={pending} />
       {isMonday(date) && <p className="text-sm text-slate-600">Reporting period: {date} – {weekEnd(date)}</p>}
       {error && <p role="alert" className="text-red-700">{error}</p>}
       <button className="report-primary" disabled={pending}>{pending ? "Opening…" : "Open report"}</button>

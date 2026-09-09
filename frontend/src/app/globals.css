@@ -63,6 +63,9 @@ input {
   color: #64748b;
 }
 .report-primary, .report-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 0.75rem;
   padding: 0.7rem 1rem;
   font-weight: 600;
@@ -73,6 +76,25 @@ input {
 .report-secondary { border: 1px solid #dfe4e8; background: white; color: #334155; }
 .report-secondary:hover { background: #f8fafc; }
 .report-primary:disabled, .report-secondary:disabled { cursor: not-allowed; opacity: 0.5; }
+
+.week-calendar-nav {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.65rem;
+  background: white;
+  color: #475569;
+  font-weight: 700;
+  transition: background-color 150ms, border-color 150ms, color 150ms;
+}
+
+.week-calendar-nav:hover {
+  border-color: #a8d8ca;
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+}
 
 button,
 a {

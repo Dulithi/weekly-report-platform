@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 import com.weeklyreport.report.ReportStatus;
 import com.weeklyreport.report.SubmissionTrackingStatus;
@@ -57,6 +59,7 @@ public class ManagerReportController {
 
     @GetMapping
     public Page<ManagerReportSummaryResponse> list(
+            @AuthenticationPrincipal Jwt jwt,
             @RequestParam(required = false) UUID memberId,
             @RequestParam(required = false) UUID projectId,
             @RequestParam(required = false)
@@ -68,17 +71,21 @@ public class ManagerReportController {
                     direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable
     ) {
         return managerReportService.list(
+                UUID.fromString(jwt.getSubject()),
                 new ManagerReportFilter(memberId, projectId, from, to, status), pageable
         );
     }
 
     @GetMapping("/submission-tracking")
     public List<SubmissionTrackingResponse> submissionTracking(
+            @AuthenticationPrincipal Jwt jwt,
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate weekStart,
             @RequestParam(required = false) SubmissionTrackingStatus status
     ) {
-        return submissionTrackingService.getForWeek(weekStart, status);
+        return submissionTrackingService.getForWeek(
+                UUID.fromString(jwt.getSubject()), weekStart, status
+        );
     }
 
     @PostMapping("/{reportId}/reviews")
@@ -97,25 +104,41 @@ public class ManagerReportController {
     }
 
     @GetMapping("/{reportId}/reviews")
-    public List<ReviewHistoryResponse> reviews(@PathVariable UUID reportId) {
-        return reviewService.getForManager(reportId);
+    public List<ReviewHistoryResponse> reviews(
+            @PathVariable UUID reportId,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        return reviewService.getForManager(UUID.fromString(jwt.getSubject()), reportId);
     }
 
     @GetMapping("/{reportId}/versions")
-    public List<ReportVersionSummaryResponse> versions(@PathVariable UUID reportId) {
-        return reportVersionHistoryService.listForManager(reportId);
+    public List<ReportVersionSummaryResponse> versions(
+            @PathVariable UUID reportId,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        return reportVersionHistoryService.listForManager(
+                UUID.fromString(jwt.getSubject()), reportId
+        );
     }
 
     @GetMapping("/{reportId}/versions/{versionNumber}")
     public ReportVersionResponse version(
             @PathVariable UUID reportId,
-            @PathVariable int versionNumber
+            @PathVariable int versionNumber,
+            @AuthenticationPrincipal Jwt jwt
     ) {
-        return reportVersionHistoryService.getForManager(reportId, versionNumber);
+        return reportVersionHistoryService.getForManager(
+                UUID.fromString(jwt.getSubject()), reportId, versionNumber
+        );
     }
 
     @GetMapping("/{reportId}")
-    public ManagerReportDetailResponse get(@PathVariable UUID reportId) {
-        return managerReportService.getSubmittedDetail(reportId);
+    public ManagerReportDetailResponse get(
+            @PathVariable UUID reportId,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        return managerReportService.getSubmittedDetail(
+                UUID.fromString(jwt.getSubject()), reportId
+        );
     }
 }

@@ -21,6 +21,7 @@ class ReportVersionHistoryIntegrationTest extends ReportIntegrationTestSupport {
         var manager = user("versions-manager@example.com", UserRole.MANAGER);
         var owner = user("versions-owner@example.com", UserRole.TEAM_MEMBER);
         var otherMember = user("versions-other@example.com", UserRole.TEAM_MEMBER);
+        assignManager(manager, owner);
         String ownerToken = login(owner);
         String managerToken = login(manager);
         UUID reportId = createReport(ownerToken, LocalDate.of(2026, 8, 17));
@@ -97,6 +98,7 @@ class ReportVersionHistoryIntegrationTest extends ReportIntegrationTestSupport {
     void managerGetsEmptyHistoryForDraftAndMissingResourcesReturnNotFound() throws Exception {
         var manager = user("versions-empty-manager@example.com", UserRole.MANAGER);
         var member = user("versions-empty-member@example.com", UserRole.TEAM_MEMBER);
+        assignManager(manager, member);
         String managerToken = login(manager);
         UUID draftId = createReport(login(member), LocalDate.of(2026, 8, 17));
 

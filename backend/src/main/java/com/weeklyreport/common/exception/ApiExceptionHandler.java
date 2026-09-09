@@ -16,10 +16,41 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.weeklyreport.auth.exception.EmailAlreadyExistsException;
 import com.weeklyreport.auth.exception.InvalidRefreshTokenException;
 import com.weeklyreport.auth.exception.LoginRateLimitExceededException;
+import com.weeklyreport.assistant.exception.AssistantProviderException;
+import com.weeklyreport.assistant.exception.AssistantRateLimitExceededException;
+import com.weeklyreport.assistant.exception.AssistantUnavailableException;
 import com.weeklyreport.user.exception.InvalidInvitationException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+
+    @ExceptionHandler(AssistantRateLimitExceededException.class)
+    public ResponseEntity<ProblemDetail> handleAssistantRateLimit(
+            AssistantRateLimitExceededException exception
+    ) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.TOO_MANY_REQUESTS, exception.getMessage());
+        problem.setTitle("Too many assistant requests");
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(HttpHeaders.RETRY_AFTER, Long.toString(exception.getRetryAfterSeconds()))
+                .body(problem);
+    }
+
+    @ExceptionHandler(AssistantUnavailableException.class)
+    public ProblemDetail handleAssistantUnavailable(AssistantUnavailableException exception) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.SERVICE_UNAVAILABLE, exception.getMessage());
+        problem.setTitle("AI assistant unavailable");
+        return problem;
+    }
+
+    @ExceptionHandler(AssistantProviderException.class)
+    public ProblemDetail handleAssistantProvider(AssistantProviderException exception) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_GATEWAY, exception.getMessage());
+        problem.setTitle("Invalid AI provider response");
+        return problem;
+    }
 
     @ExceptionHandler(LoginRateLimitExceededException.class)
     public ResponseEntity<ProblemDetail> handleLoginRateLimit(LoginRateLimitExceededException exception) {

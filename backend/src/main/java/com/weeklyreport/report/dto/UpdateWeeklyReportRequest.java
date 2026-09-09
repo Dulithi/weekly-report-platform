@@ -11,20 +11,15 @@ public record UpdateWeeklyReportRequest(
         @Size(max = 5000)
         String notes,
 
-        @Valid
-        List<CompletedTaskRequest> completedTasks,
+        List<@Valid CompletedTaskRequest> completedTasks,
 
-        @Valid
-        List<PlannedTaskRequest> plannedTasks,
+        List<@Valid PlannedTaskRequest> plannedTasks,
 
-        @Valid
-        List<BlockerRequest> blockers,
+        List<@Valid BlockerRequest> blockers,
 
-        @Valid
-        List<AchievementRequest> achievements,
+        List<@Valid AchievementRequest> achievements,
 
-        @Valid
-        List<TimeEntryRequest> timeEntries,
+        List<@Valid TimeEntryRequest> timeEntries,
 
         @NotNull
         Long entityVersion

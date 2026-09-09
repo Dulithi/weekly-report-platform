@@ -19,27 +19,29 @@ import com.weeklyreport.user.repository.UserRepository;
 public class TeamMemberProfileService {
 
     private final UserRepository userRepository;
+    private final ManagerScopeService managerScopeService;
     private final WeeklyReportRepository weeklyReportRepository;
 
     public TeamMemberProfileService(
             UserRepository userRepository,
+            ManagerScopeService managerScopeService,
             WeeklyReportRepository weeklyReportRepository
     ) {
         this.userRepository = userRepository;
+        this.managerScopeService = managerScopeService;
         this.weeklyReportRepository = weeklyReportRepository;
     }
 
     @Transactional(readOnly = true)
-    public List<TeamMemberResponse> list() {
-        return userRepository
-                .findAllByRoleOrderByLastNameAscFirstNameAscEmailAsc(UserRole.TEAM_MEMBER)
-                .stream()
+    public List<TeamMemberResponse> list(UUID actorId) {
+        return managerScopeService.visibleMembers(actorId).stream()
                 .map(this::toMemberResponse)
                 .toList();
     }
 
     @Transactional(readOnly = true)
-    public TeamMemberProfileResponse get(UUID memberId) {
+    public TeamMemberProfileResponse get(UUID actorId, UUID memberId) {
+        managerScopeService.requireMember(actorId, memberId);
         User member = userRepository.findByIdAndRole(memberId, UserRole.TEAM_MEMBER)
                 .orElseThrow(() -> new ResourceNotFoundException("Team member not found"));
         var statistics = weeklyReportRepository.getStatisticsForUser(memberId);

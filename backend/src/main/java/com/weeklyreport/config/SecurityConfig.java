@@ -24,10 +24,16 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.weeklyreport.security.SecurityProperties;
 import com.weeklyreport.security.CurrentAccountAuthoritiesConverter;
+import com.weeklyreport.bootstrap.BootstrapAdminProperties;
+import com.weeklyreport.user.mail.InvitationMailProperties;
 
 @Configuration
 @EnableMethodSecurity
-@EnableConfigurationProperties(SecurityProperties.class)
+@EnableConfigurationProperties({
+        SecurityProperties.class,
+        BootstrapAdminProperties.class,
+        InvitationMailProperties.class
+})
 public class SecurityConfig {
 
     @Bean
@@ -183,7 +189,7 @@ public class SecurityConfig {
         );
 
         configuration.setAllowCredentials(true);
-        configuration.setExposedHeaders(List.of("Retry-After"));
+        configuration.setExposedHeaders(List.of("Retry-After", "X-Request-ID"));
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();

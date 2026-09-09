@@ -25,6 +25,8 @@ import com.weeklyreport.review.service.ReviewService;
 import com.weeklyreport.support.PostgresIntegrationTest;
 import com.weeklyreport.user.UserRole;
 import com.weeklyreport.user.entity.User;
+import com.weeklyreport.user.entity.ManagerTeamMember;
+import com.weeklyreport.user.repository.ManagerTeamMemberRepository;
 import com.weeklyreport.user.repository.UserRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,6 +39,9 @@ class ManagerReviewConcurrencyIntegrationTest extends PostgresIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ManagerTeamMemberRepository managerTeamMemberRepository;
 
     @Autowired
     private WeeklyReportRepository weeklyReportRepository;
@@ -105,11 +110,9 @@ class ManagerReviewConcurrencyIntegrationTest extends PostgresIntegrationTest {
                 "review-race-manager-one@example.com", "unused", "First", "Manager",
                 UserRole.MANAGER
         ));
-        User secondManager = userRepository.save(new User(
-                "review-race-manager-two@example.com", "unused", "Second", "Manager",
-                UserRole.MANAGER
-        ));
         userRepository.flush();
+        managerTeamMemberRepository.save(new ManagerTeamMember(member, firstManager));
+        managerTeamMemberRepository.flush();
 
         WeeklyReport report = weeklyReportRepository.saveAndFlush(
                 new WeeklyReport(member, LocalDate.of(2026, 8, 17))
@@ -123,7 +126,7 @@ class ManagerReviewConcurrencyIntegrationTest extends PostgresIntegrationTest {
         weeklyReportRepository.saveAndFlush(report);
 
         return new Fixture(
-                report.getId(), member.getId(), firstManager.getId(), secondManager.getId()
+                report.getId(), member.getId(), firstManager.getId(), firstManager.getId()
         );
     }
 
@@ -145,6 +148,7 @@ class ManagerReviewConcurrencyIntegrationTest extends PostgresIntegrationTest {
             );
             jdbcTemplate.update("delete from report_version where report_id = ?", reportId);
             jdbcTemplate.update("delete from weekly_report where id = ?", reportId);
+            jdbcTemplate.update("delete from manager_team_member where team_member_id = ?", userIds.getFirst());
             for (UUID userId : userIds) {
                 jdbcTemplate.update("delete from app_user where id = ?", userId);
             }

@@ -90,6 +90,52 @@ export interface Review {
   reviewer: ReportMember;
   createdAt: string;
 }
+export type SubmissionTrackingStatus = ReportStatus | "NOT_STARTED";
+export type SubmissionTiming = "ON_TIME" | "PENDING" | "LATE";
+export type ReportActivityType =
+  | "REPORT_CREATED"
+  | "REPORT_SUBMITTED"
+  | "REPORT_RESUBMITTED"
+  | "REPORT_CHANGES_REQUESTED"
+  | "REPORT_APPROVED";
+export interface SubmissionTracking {
+  member: ReportMember; reportId: string | null; weekStart: string; weekEnd: string;
+  status: SubmissionTrackingStatus; timing: SubmissionTiming; dueAt: string;
+  firstSubmittedAt: string | null;
+}
+export interface ManagerDashboard {
+  weekStart: string; weekEnd: string; dueAt: string;
+  summary: {
+    totalActiveMembers: number; submittedReports: number; onTimeSubmissions: number;
+    pendingSubmissions: number; lateSubmissions: number; submissionRatePercent: number;
+    onTimeComplianceRatePercent: number; needsCorrectionReports: number; openBlockers: number;
+  };
+  submissionsByMember: SubmissionTracking[];
+  completedTaskTrend: Array<{ weekStart: string; completedTasks: number }>;
+  projectTaskDistribution: Array<{ projectId: string | null; projectName: string; taskCount: number }>;
+  timeByTaskType: Array<{ taskType: typeof taskTypes[number]; minutes: number }>;
+  recentActivity: Array<{
+    id: string; type: ReportActivityType; reportId: string | null;
+    actor: { id: string; firstName: string; lastName: string } | null; createdAt: string;
+  }>;
+}
+export interface MemberSectionComparison {
+  member: ReportMember; reportId: string | null; status: SubmissionTrackingStatus;
+  timing: SubmissionTiming; submittedVersionNumber: number | null;
+  blockers: Array<Blocker & { id: string; sortOrder: number }>;
+  achievements: Array<Achievement & { id: string; sortOrder: number }>;
+}
+export interface WeeklySectionComparison {
+  weekStart: string; weekEnd: string; members: MemberSectionComparison[];
+}
+export interface AssistantSource {
+  sourceKey: string; reportId: string; versionNumber: number;
+  memberName: string; weekStart: string; href: string;
+}
+export interface AssistantResponse {
+  answer: string; fromWeek: string; throughWeek: string;
+  reportsConsidered: number; sources: AssistantSource[];
+}
 export const label = (value: string) => value.toLowerCase().replaceAll("_", " ").replace(/^./, c => c.toUpperCase());
 export function isMonday(value: string) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value) && new Date(`${value}T12:00:00Z`).getUTCDay() === 1;

@@ -26,6 +26,8 @@ import com.weeklyreport.support.AuthTestHelper;
 import com.weeklyreport.support.PostgresIntegrationTest;
 import com.weeklyreport.user.UserRole;
 import com.weeklyreport.user.entity.User;
+import com.weeklyreport.user.entity.ManagerTeamMember;
+import com.weeklyreport.user.repository.ManagerTeamMemberRepository;
 import com.weeklyreport.user.repository.UserRepository;
 
 @SpringBootTest
@@ -46,6 +48,9 @@ abstract class ReportIntegrationTestSupport extends PostgresIntegrationTest {
 
     @Autowired
     protected UserRepository userRepository;
+
+    @Autowired
+    protected ManagerTeamMemberRepository managerTeamMemberRepository;
 
     @Autowired
     protected PasswordEncoder passwordEncoder;
@@ -75,6 +80,10 @@ abstract class ReportIntegrationTestSupport extends PostgresIntegrationTest {
 
     protected void assignProject(Project project, User member) {
         projectMemberRepository.saveAndFlush(new ProjectMember(project, member));
+    }
+
+    protected void assignManager(User manager, User member) {
+        managerTeamMemberRepository.saveAndFlush(new ManagerTeamMember(member, manager));
     }
 
     protected String login(User user) throws Exception {

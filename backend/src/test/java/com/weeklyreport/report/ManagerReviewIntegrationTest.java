@@ -44,6 +44,7 @@ class ManagerReviewIntegrationTest extends ReportIntegrationTestSupport {
     void managerApprovesSubmittedVersionAndRecordsAuditData() throws Exception {
         var manager = user("approve-manager@example.com", UserRole.MANAGER);
         var member = user("approve-member@example.com", UserRole.TEAM_MEMBER);
+        assignManager(manager, member);
         UUID reportId = submittedReport(member, LocalDate.of(2026, 8, 17));
 
         mockMvc.perform(post("/api/v1/manager/reports/{id}/reviews", reportId)
@@ -80,6 +81,7 @@ class ManagerReviewIntegrationTest extends ReportIntegrationTestSupport {
     void requestingChangesRequiresCommentAndCopiesAnEditableVersion() throws Exception {
         var manager = user("changes-manager@example.com", UserRole.MANAGER);
         var member = user("changes-member@example.com", UserRole.TEAM_MEMBER);
+        assignManager(manager, member);
         UUID reportId = submittedReport(member, LocalDate.of(2026, 8, 24));
         String managerToken = login(manager);
 
@@ -179,6 +181,7 @@ class ManagerReviewIntegrationTest extends ReportIntegrationTestSupport {
     void reviewOnlyAcceptsSubmittedReportsAndCannotBeRepeated() throws Exception {
         var manager = user("review-state-manager@example.com", UserRole.MANAGER);
         var member = user("review-state-member@example.com", UserRole.TEAM_MEMBER);
+        assignManager(manager, member);
         UUID draftId = createReport(login(member), LocalDate.of(2026, 8, 17));
         UUID submittedId = submittedReport(member, LocalDate.of(2026, 8, 24));
         String token = login(manager);

@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -15,10 +16,12 @@ import com.weeklyreport.user.UserRole;
 class ManagerReportAccessIntegrationTest extends ReportIntegrationTestSupport {
 
     @Test
-    void managerListsWholeTeamAndDraftExposesOnlyTrackingMetadata() throws Exception {
+    void managerListsAssignedTeamAndDraftExposesOnlyTrackingMetadata() throws Exception {
         var manager = user("report-list-manager@example.com", UserRole.MANAGER);
         var first = user("report-list-first@example.com", UserRole.TEAM_MEMBER);
         var second = user("report-list-second@example.com", UserRole.TEAM_MEMBER);
+        assignManager(manager, first);
+        assignManager(manager, second);
         UUID submitted = createPopulatedReport(first, LocalDate.of(2026, 8, 17), null);
         submit(first, submitted);
         UUID draft = createPopulatedReport(second, LocalDate.of(2026, 8, 24), null);
@@ -40,9 +43,44 @@ class ManagerReportAccessIntegrationTest extends ReportIntegrationTestSupport {
     }
 
     @Test
+    void unassignedReportsAreExcludedAndDirectUrlsAreNotFound() throws Exception {
+        var manager = user("report-scope-manager@example.com", UserRole.MANAGER);
+        var assigned = user("report-scope-assigned@example.com", UserRole.TEAM_MEMBER);
+        var unassigned = user("report-scope-unassigned@example.com", UserRole.TEAM_MEMBER);
+        assignManager(manager, assigned);
+        UUID assignedReport = createPopulatedReport(assigned, LocalDate.of(2026, 8, 17), null);
+        UUID unassignedReport = createPopulatedReport(unassigned, LocalDate.of(2026, 8, 17), null);
+        submit(assigned, assignedReport);
+        submit(unassigned, unassignedReport);
+        String token = login(manager);
+
+        mockMvc.perform(get("/api/v1/manager/reports")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.content[0].id").value(assignedReport.toString()));
+
+        mockMvc.perform(get("/api/v1/manager/reports/{id}", unassignedReport)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/v1/manager/reports/{id}/reviews", unassignedReport)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/v1/manager/reports/{id}/versions", unassignedReport)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(post("/api/v1/manager/reports/{id}/reviews", unassignedReport)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"action\":\"APPROVED\"}"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void managerCanOpenSubmittedContentButCannotOpenDraftContent() throws Exception {
         var manager = user("report-detail-manager@example.com", UserRole.MANAGER);
         var member = user("report-detail-member@example.com", UserRole.TEAM_MEMBER);
+        assignManager(manager, member);
         UUID submitted = createPopulatedReport(member, LocalDate.of(2026, 8, 17), null);
         submit(member, submitted);
         UUID draft = createPopulatedReport(member, LocalDate.of(2026, 8, 24), null);
@@ -67,6 +105,8 @@ class ManagerReportAccessIntegrationTest extends ReportIntegrationTestSupport {
         var manager = user("report-filter-manager@example.com", UserRole.MANAGER);
         var first = user("report-filter-first@example.com", UserRole.TEAM_MEMBER);
         var second = user("report-filter-second@example.com", UserRole.TEAM_MEMBER);
+        assignManager(manager, first);
+        assignManager(manager, second);
         var alpha = project("Manager filter alpha", manager);
         var beta = project("Manager filter beta", manager);
         assignProject(alpha, first);
@@ -101,6 +141,7 @@ class ManagerReportAccessIntegrationTest extends ReportIntegrationTestSupport {
     void invalidDateRangeIsRejectedAndListIsPaginated() throws Exception {
         var manager = user("report-page-manager@example.com", UserRole.MANAGER);
         var member = user("report-page-member@example.com", UserRole.TEAM_MEMBER);
+        assignManager(manager, member);
         createReport(login(member), LocalDate.of(2026, 8, 17));
         createReport(login(member), LocalDate.of(2026, 8, 24));
         String token = login(manager);

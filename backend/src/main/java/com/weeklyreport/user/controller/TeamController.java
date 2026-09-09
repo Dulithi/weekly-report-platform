@@ -3,11 +3,12 @@ package com.weeklyreport.user.controller;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.weeklyreport.user.dto.TeamMemberResponse;
 import com.weeklyreport.user.dto.TeamMemberProfileResponse;
 import com.weeklyreport.user.service.TeamMemberProfileService;
@@ -23,12 +24,15 @@ public class TeamController {
     }
 
     @GetMapping
-    public List<TeamMemberResponse> team() {
-        return teamMemberProfileService.list();
+    public List<TeamMemberResponse> team(@AuthenticationPrincipal Jwt jwt) {
+        return teamMemberProfileService.list(UUID.fromString(jwt.getSubject()));
     }
 
     @GetMapping("/{memberId}")
-    public TeamMemberProfileResponse profile(@PathVariable UUID memberId) {
-        return teamMemberProfileService.get(memberId);
+    public TeamMemberProfileResponse profile(
+            @PathVariable UUID memberId,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        return teamMemberProfileService.get(UUID.fromString(jwt.getSubject()), memberId);
     }
 }

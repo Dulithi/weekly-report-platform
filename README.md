@@ -5,14 +5,14 @@ A full-stack weekly reporting and team analytics platform.
 ## Technology Stack
 
 ### Frontend
-- Next.js
-- React
+- Next.js 16.3.3
+- React 19.2.8
 - TypeScript
-- Tailwind CSS
+- Tailwind CSS 4
 
 ### Backend
 - Java 25
-- Spring Boot
+- Spring Boot 4.1.1
 - Spring Security
 - Spring Data JPA
 - Flyway
@@ -23,7 +23,7 @@ A full-stack weekly reporting and team analytics platform.
 ## Prerequisites
 
 - Java 25
-- Node.js 24 LTS
+- Node.js 24.20 or newer 24.x LTS release
 - Docker
 - Docker Compose
 
@@ -35,6 +35,18 @@ file is ignored by Git.
 ```bash
 cp .env.example .env
 ```
+
+Generate the JWT signing secret locally and paste the output into
+`JWT_SECRET_BASE64`. Use a separate high-entropy database password for
+`POSTGRES_PASSWORD` and `DATABASE_PASSWORD` (both values must match in local
+Docker development).
+
+```bash
+openssl rand -base64 32
+```
+
+Never commit `.env`, demo passwords, invitation tokens, access/refresh tokens or
+an AI provider key.
 
 ### Start PostgreSQL
 
@@ -96,11 +108,35 @@ application's CSRF protection: first call `GET /api/v1/auth/csrf`, then copy the
 response token into **Authorize → csrfToken**. Swagger UI keeps the matching
 same-origin cookie set by the CSRF endpoint.
 
+### Optional Manager AI Assistant
+
+The manager assistant is disabled by default. To enable the OpenAI Responses API
+adapter, keep the API key only in the ignored local `.env` file or your deployment
+secret store:
+
+```dotenv
+AI_ASSISTANT_ENABLED=true
+OPENAI_API_KEY=your-secret-api-key
+```
+
+Restart the backend after changing these values. The default model, reasoning
+effort, connection timeout, request timeout and all request-size/rate limits are
+listed in `.env.example` and can be changed without rebuilding the application.
+The backend sends only bounded data from submitted report versions, explicitly
+sets provider storage to false, exposes no model tools and validates returned
+source keys before creating report links. Each successful model request can incur
+provider usage charges. If the adapter is disabled or unavailable, the rest of
+the platform continues to work and the assistant endpoint returns a sanitized
+service-unavailable response.
+Managers and administrators access the interface at `/manager/assistant`. Its
+conversation history remains only in the current browser tab and disappears when
+the page is refreshed.
+
 ### Start Frontend
 
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 
@@ -110,3 +146,55 @@ npm run dev
 - Backend : [http://localhost:8080](http://localhost:8080)
 - Health : [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health)
 - Swagger UI (dev profile): [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+
+## Verification
+
+Backend tests use PostgreSQL 18 through Testcontainers, so Docker must be
+running:
+
+```bash
+cd backend
+./mvnw test
+```
+
+Run the frontend static checks and production build:
+
+```bash
+cd frontend
+npm ci
+npm run lint
+npx tsc --noEmit
+npm run build
+```
+
+The assessment browser scenarios, expected results and production checks are in
+[the manual test plan](docs/manual-test-plan.md). Run at least every P0 case and
+the full submit → correction → resubmit → approve workflow before recording or
+deploying.
+
+## Assessment Deliverables
+
+- [Requirement traceability matrix](docs/assessment-traceability.md)
+- [Manual test plan](docs/manual-test-plan.md)
+- [Fresh start, email and deployment guide](docs/fresh-start-email-and-deployment.md)
+- [ER diagram (PNG)](docs/er-diagram.png) and [editable Mermaid source](docs/er-diagram.mmd)
+- [Editable presentation](docs/weekly-report-platform-presentation.pptx)
+- [Camera-on demo and submission script](docs/demo-script.md)
+- [Architecture decisions](docs/decisions/ADR-001-architecture.md)
+
+The presentation can be uploaded and converted to Google Slides. Review the
+converted deck before sharing because Google Slides may substitute fonts or move
+elements. The camera-on recording, public sharing permissions, final Drive folder
+and submission email require the submitter's own accounts.
+
+## Production Configuration
+
+Use HTTPS and a deployment secret manager. Set `REFRESH_COOKIE_SECURE=true`, keep
+`REFRESH_COOKIE_SAME_SITE=Strict` when the frontend and API deployment topology
+allows it, and set `FRONTEND_URL` to the single exact public frontend origin. Do
+not enable the demo seed or development profile in production. Leave Swagger and
+the AI assistant disabled unless they are intentionally required.
+
+After deployment, verify the health endpoint, TLS, login/refresh/logout,
+credentialed CORS, CSRF protection, cookie flags and role/resource boundaries
+using the production section of the manual test plan.

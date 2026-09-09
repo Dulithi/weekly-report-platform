@@ -13,6 +13,7 @@ import com.weeklyreport.report.entity.ReportVersion;
 import com.weeklyreport.report.entity.WeeklyReport;
 import com.weeklyreport.report.repository.ReportVersionRepository;
 import com.weeklyreport.report.repository.WeeklyReportRepository;
+import com.weeklyreport.user.service.ManagerScopeService;
 
 @Service
 public class ReportVersionHistoryService {
@@ -20,15 +21,18 @@ public class ReportVersionHistoryService {
     private final WeeklyReportRepository weeklyReportRepository;
     private final ReportVersionRepository reportVersionRepository;
     private final ReportVersionService reportVersionService;
+    private final ManagerScopeService managerScopeService;
 
     public ReportVersionHistoryService(
             WeeklyReportRepository weeklyReportRepository,
             ReportVersionRepository reportVersionRepository,
-            ReportVersionService reportVersionService
+            ReportVersionService reportVersionService,
+            ManagerScopeService managerScopeService
     ) {
         this.weeklyReportRepository = weeklyReportRepository;
         this.reportVersionRepository = reportVersionRepository;
         this.reportVersionService = reportVersionService;
+        this.managerScopeService = managerScopeService;
     }
 
     @Transactional(readOnly = true)
@@ -54,8 +58,9 @@ public class ReportVersionHistoryService {
     }
 
     @Transactional(readOnly = true)
-    public List<ReportVersionSummaryResponse> listForManager(UUID reportId) {
+    public List<ReportVersionSummaryResponse> listForManager(UUID actorId, UUID reportId) {
         WeeklyReport report = getReport(reportId);
+        managerScopeService.requireMember(actorId, report.getUser().getId());
         return reportVersionRepository
                 .findByReportIdAndSubmittedAtIsNotNullOrderByVersionNumberAsc(reportId)
                 .stream()
@@ -64,8 +69,9 @@ public class ReportVersionHistoryService {
     }
 
     @Transactional(readOnly = true)
-    public ReportVersionResponse getForManager(UUID reportId, int versionNumber) {
-        getReport(reportId);
+    public ReportVersionResponse getForManager(UUID actorId, UUID reportId, int versionNumber) {
+        WeeklyReport report = getReport(reportId);
+        managerScopeService.requireMember(actorId, report.getUser().getId());
         ReportVersion version = reportVersionRepository
                 .findByReportIdAndVersionNumberAndSubmittedAtIsNotNull(reportId, versionNumber)
                 .orElseThrow(() -> new ResourceNotFoundException("Submitted report version not found"));

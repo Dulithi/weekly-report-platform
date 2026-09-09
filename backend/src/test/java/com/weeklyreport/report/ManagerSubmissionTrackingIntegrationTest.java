@@ -33,8 +33,12 @@ class ManagerSubmissionTrackingIntegrationTest extends ReportIntegrationTestSupp
         var manager = user("tracking-manager@example.com", UserRole.MANAGER);
         var submittedMember = user("tracking-submitted@example.com", UserRole.TEAM_MEMBER);
         var draftMember = user("tracking-draft@example.com", UserRole.TEAM_MEMBER);
+        assignManager(manager, submittedMember);
+        assignManager(manager, draftMember);
         var missingMember = user("tracking-missing@example.com", UserRole.TEAM_MEMBER);
         var inactiveMember = user("tracking-inactive@example.com", UserRole.TEAM_MEMBER);
+        assignManager(manager, missingMember);
+        assignManager(manager, inactiveMember);
         inactiveMember.deactivate();
         userRepository.saveAndFlush(inactiveMember);
         LocalDate week = LocalDate.of(2026, 8, 17);
@@ -76,6 +80,8 @@ class ManagerSubmissionTrackingIntegrationTest extends ReportIntegrationTestSupp
         var manager = user("tracking-filter-manager@example.com", UserRole.MANAGER);
         var draftMember = user("tracking-filter-draft@example.com", UserRole.TEAM_MEMBER);
         var missingMember = user("tracking-filter-missing@example.com", UserRole.TEAM_MEMBER);
+        assignManager(manager, draftMember);
+        assignManager(manager, missingMember);
         LocalDate futureWeek = LocalDate.of(2099, 1, 5);
         createReport(login(draftMember), futureWeek);
 
@@ -95,6 +101,7 @@ class ManagerSubmissionTrackingIntegrationTest extends ReportIntegrationTestSupp
     void timingUsesFirstSubmissionRatherThanLaterCorrectionSubmission() throws Exception {
         var manager = user("tracking-first-manager@example.com", UserRole.MANAGER);
         var member = user("tracking-first-member@example.com", UserRole.TEAM_MEMBER);
+        assignManager(manager, member);
         LocalDate week = LocalDate.of(2026, 8, 17);
         Instant dueAt = Instant.parse("2026-08-23T18:30:00Z");
 

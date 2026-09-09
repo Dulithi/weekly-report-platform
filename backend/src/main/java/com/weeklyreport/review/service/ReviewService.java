@@ -28,6 +28,7 @@ import com.weeklyreport.review.repository.ReportStatusHistoryRepository;
 import com.weeklyreport.review.repository.ReviewRepository;
 import com.weeklyreport.user.entity.User;
 import com.weeklyreport.user.repository.UserRepository;
+import com.weeklyreport.user.service.ManagerScopeService;
 
 @Service
 public class ReviewService {
@@ -39,6 +40,7 @@ public class ReviewService {
     private final ReportVersionCopyService reportVersionCopyService;
     private final ActivityLogService activityLogService;
     private final Clock clock;
+    private final ManagerScopeService managerScopeService;
 
     public ReviewService(
             WeeklyReportRepository weeklyReportRepository,
@@ -47,7 +49,8 @@ public class ReviewService {
             ReportStatusHistoryRepository statusHistoryRepository,
             ReportVersionCopyService reportVersionCopyService,
             ActivityLogService activityLogService,
-            Clock clock
+            Clock clock,
+            ManagerScopeService managerScopeService
     ) {
         this.weeklyReportRepository = weeklyReportRepository;
         this.userRepository = userRepository;
@@ -56,6 +59,7 @@ public class ReviewService {
         this.reportVersionCopyService = reportVersionCopyService;
         this.activityLogService = activityLogService;
         this.clock = clock;
+        this.managerScopeService = managerScopeService;
     }
 
     @Transactional
@@ -136,16 +140,17 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    public List<ReviewHistoryResponse> getForManager(UUID reportId) {
-        if (!weeklyReportRepository.existsById(reportId)) {
-            throw new ResourceNotFoundException("Report not found");
-        }
+    public List<ReviewHistoryResponse> getForManager(UUID actorId, UUID reportId) {
+        WeeklyReport report = weeklyReportRepository.findById(reportId)
+                .orElseThrow(() -> new ResourceNotFoundException("Report not found"));
+        managerScopeService.requireMember(actorId, report.getUser().getId());
         return getHistory(reportId);
     }
 
     private WeeklyReport getSubmittedReportForReview(UUID reportId, UUID reviewerId) {
         WeeklyReport report = weeklyReportRepository.findByIdForReview(reportId)
                 .orElseThrow(() -> new ResourceNotFoundException("Submitted report not found"));
+        managerScopeService.requireMember(reviewerId, report.getUser().getId());
         if (report.getStatus() != ReportStatus.SUBMITTED) {
             throw new ConflictException("Only submitted reports can be reviewed");
         }

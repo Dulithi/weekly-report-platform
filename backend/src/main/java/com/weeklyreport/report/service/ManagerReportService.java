@@ -19,6 +19,7 @@ import com.weeklyreport.report.repository.ManagerReportSpecifications;
 import com.weeklyreport.report.repository.ReportVersionRepository;
 import com.weeklyreport.report.repository.WeeklyReportRepository;
 import com.weeklyreport.user.entity.User;
+import com.weeklyreport.user.service.ManagerScopeService;
 
 @Service
 public class ManagerReportService {
@@ -26,20 +27,23 @@ public class ManagerReportService {
     private final WeeklyReportRepository weeklyReportRepository;
     private final ReportVersionRepository reportVersionRepository;
     private final ReportVersionService reportVersionService;
+    private final ManagerScopeService managerScopeService;
 
     public ManagerReportService(
             WeeklyReportRepository weeklyReportRepository,
             ReportVersionRepository reportVersionRepository,
-            ReportVersionService reportVersionService
+            ReportVersionService reportVersionService,
+            ManagerScopeService managerScopeService
     ) {
         this.weeklyReportRepository = weeklyReportRepository;
         this.reportVersionRepository = reportVersionRepository;
         this.reportVersionService = reportVersionService;
+        this.managerScopeService = managerScopeService;
     }
 
     @Transactional(readOnly = true)
     public Page<ManagerReportSummaryResponse> list(
-            ManagerReportFilter filter, Pageable pageable
+            UUID actorId, ManagerReportFilter filter, Pageable pageable
     ) {
         validateDateRange(filter.from(), filter.to());
 
@@ -48,6 +52,7 @@ public class ManagerReportService {
 
         return weeklyReportRepository.findAll(
                         ManagerReportSpecifications.filteredBy(
+                                managerScopeService.visibleMemberIds(actorId),
                                 filter.memberId(),
                                 filter.projectId(),
                                 earliestWeekStart,
@@ -60,9 +65,10 @@ public class ManagerReportService {
     }
 
     @Transactional(readOnly = true)
-    public ManagerReportDetailResponse getSubmittedDetail(UUID reportId) {
+    public ManagerReportDetailResponse getSubmittedDetail(UUID actorId, UUID reportId) {
         WeeklyReport report = weeklyReportRepository.findById(reportId)
                 .orElseThrow(() -> new ResourceNotFoundException("Submitted report not found"));
+        managerScopeService.requireMember(actorId, report.getUser().getId());
 
         var submittedVersion = reportVersionRepository
                 .findTopByReportIdAndSubmittedAtIsNotNullOrderByVersionNumberDesc(reportId)

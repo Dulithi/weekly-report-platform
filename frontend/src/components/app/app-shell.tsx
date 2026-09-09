@@ -76,6 +76,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <NavLink href="/manager/team-members" active={pathname.startsWith("/manager/team-members")} onNavigate={() => setMenuOpen(false)}>
                   <TeamIcon /> Team members
                 </NavLink>
+                <NavLink href="/manager/comparisons" active={pathname.startsWith("/manager/comparisons")} onNavigate={() => setMenuOpen(false)}>
+                  <CompareIcon /> Compare sections
+                </NavLink>
+                <NavLink href="/manager/assistant" active={pathname.startsWith("/manager/assistant")} onNavigate={() => setMenuOpen(false)}>
+                  <AssistantIcon /> Report assistant
+                </NavLink>
               </>
             )}
             {user.role === "ADMIN" && (
@@ -161,6 +167,14 @@ function UsersIcon() {
 
 function TeamIcon() {
   return <svg viewBox="0 0 24 24" className="size-5" fill="none" aria-hidden="true"><path d="M15.5 20v-1.5a4.5 4.5 0 0 0-4.5-4.5H7.5A4.5 4.5 0 0 0 3 18.5V20M9.25 10a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM16 11a3 3 0 1 0 0-6M16.5 14a4.5 4.5 0 0 1 4.5 4.5V20" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>;
+}
+
+function CompareIcon() {
+  return <svg viewBox="0 0 24 24" className="size-5" fill="none" aria-hidden="true"><path d="M4 5h6v14H4zM14 5h6v14h-6z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /><path d="M6.5 9h1M16.5 9h1M6.5 13h1M16.5 13h1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>;
+}
+
+function AssistantIcon() {
+  return <svg viewBox="0 0 24 24" className="size-5" fill="none" aria-hidden="true"><path d="M5 5.5A2.5 2.5 0 0 1 7.5 3h9A2.5 2.5 0 0 1 19 5.5v8a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4A2.5 2.5 0 0 1 4 13.5v-8Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /><path d="m10.25 8 .55-1.5.55 1.5 1.5.55-1.5.55-.55 1.5-.55-1.5-1.5-.55 1.5-.55Z" fill="currentColor" /></svg>;
 }
 
 function LogoutIcon() {
